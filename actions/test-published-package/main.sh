@@ -65,7 +65,8 @@ cd $TMPDIR
 git clone --depth 1 https://github.com/meta-llama/llama-stack.git
 cd llama-stack
 
-git checkout -b cut-${VERSION} v${VERSION}
+git fetch origin refs/tags/v${VERSION}:refs/tags/v${VERSION}
+git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 echo "Running client-sdk tests"
 cd tests/client-sdk
