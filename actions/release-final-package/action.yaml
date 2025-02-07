@@ -1,0 +1,49 @@
+name: 'Release final package'
+description: 'Release final package'
+inputs:
+  release_version:
+    description: 'Release version of the package to publish'
+    required: true
+  rc_version:
+    description: 'Release candidate version which will be used to build the final package'
+    required: true
+  github_token:
+    description: 'GitHub token to use for the release'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - uses: astral-sh/setup-uv@v5
+      with:
+        python-version: '3.10'
+        enable-cache: false
+    - name: Install dependencies
+      shell: bash
+      run: |
+        sudo apt-get install -y bubblewrap
+
+    - name: Configure Git
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Build and publish
+      shell: bash
+      env:
+        RELEASE_VERSION: ${{ inputs.release_version }}
+        RC_VERSION: ${{ inputs.rc_version }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: |
+        chmod +x ${{ github.action_path }}/main.sh
+        ${{ github.action_path }}/main.sh
+
+# Example usage in workflow:
+# - uses: meta-llama/llama-stack-ops/actions/commit-final-packages@main
+#   with:
+#     version: '1.0.0'
+#     pypi_token: ${{ secrets.PYPI_TOKEN }}

@@ -1,0 +1,45 @@
+name: Create Test RC Package
+
+on:
+  workflow_dispatch:  # Keep manual trigger
+    inputs:
+      version:
+        description: 'Version (e.g. 0.1.1rc2, 0.1.1.dev20250201)'
+        required: true
+        type: string
+  schedule:
+    - cron: "0 0 * * *"  # Run every day at midnight
+
+jobs:
+  publish-to-testpypi:
+    runs-on: ubuntu-latest
+    environment:
+      name: testrelease
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./actions/upload-test-packages
+      with:
+        version: ${{ inputs.version }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
+        # TODO: this will expire in 90 days; we should figure out a 
+        # GitHub App setup that can be used instead
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}        
+
+  test-published-package:
+    name: Test published package
+    needs:
+      - publish-to-testpypi
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./actions/test-published-package
+      with:
+        version: ${{ inputs.version }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}

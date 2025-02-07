@@ -1,0 +1,58 @@
+name: Release final package to PyPI
+
+on:
+  workflow_dispatch:  # Keep manual trigger
+    inputs:
+      release_version:
+        description: 'Version of this release (e.g. 0.1.1)'
+        required: true
+        type: string
+      rc_version:
+        description: 'RC version which should be used as the base for this release (e.g. 0.1.1rc2)'
+        required: true
+        type: string
+
+jobs:
+  publish-to-pypi:
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./actions/release-final-package
+      with:
+        release_version: ${{ inputs.release_version }}
+        rc_version: ${{ inputs.rc_version }}
+        # TODO: this will expire in 90 days; we should figure out a 
+        # GitHub App setup that can be used instead
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}        
+
+  test-published-package:
+    name: Test published package
+    needs:
+      - publish-to-pypi
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./actions/test-published-package
+      with:
+        version: ${{ inputs.release_version }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
+
+  publish-dockers:
+    name: Publish Docker images
+    needs:
+      - test-published-package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/publish-dockers
+        with:
+          version: ${{ inputs.release_version }}
+          dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}

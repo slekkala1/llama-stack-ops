@@ -1,0 +1,48 @@
+name: 'Test published package'
+description: 'Test a published package from PyPI or TestPyPI'
+inputs:
+  version:
+    description: 'Version of the package to test'
+    required: true
+  fireworks_api_key:
+    description: 'Fireworks API key'
+    required: true
+  together_api_key:
+    description: 'Together API key'
+    required: true
+  tavily_search_api_key:
+    description: 'Tavily Search API key'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - uses: astral-sh/setup-uv@v5
+      with:
+        python-version: '3.10'
+        enable-cache: false
+    - name: Install dependencies
+      shell: bash
+      run: |
+        sudo apt-get install -y bubblewrap
+
+    - name: Test package
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        TOGETHER_API_KEY: ${{ inputs.together_api_key }}
+        TAVILY_SEARCH_API_KEY: ${{ inputs.tavily_search_api_key }}
+        FIREWORKS_API_KEY: ${{ inputs.fireworks_api_key }}
+      run: |
+        chmod +x ${{ github.action_path }}/main.sh
+        ${{ github.action_path }}/main.sh
+
+# Example usage in workflow:
+# - uses: meta-llama/llama-stack-ops/actions/upload-test-packages@main
+#   with:
+#     version: 0.1.1rc2
+#     branch: main
+#     pypi_token: ${{ secrets.PYPI_TOKEN }}
