@@ -5,8 +5,6 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-TEMPLATE=fireworks
-
 set -euo pipefail
 set -x
 
@@ -48,34 +46,41 @@ llama stack list-apis
 llama stack list-providers inference
 llama stack list-providers telemetry
 
-echo "Building $TEMPLATE template"
-SCRIPT_FILE=$(mktemp)
-echo "#!/bin/bash" > $SCRIPT_FILE
-echo "set -euo pipefail" >> $SCRIPT_FILE
-echo "set -x" >> $SCRIPT_FILE
-llama stack build --template $TEMPLATE --print-deps-only >> $SCRIPT_FILE
 
-echo "Running script $SCRIPT_FILE"
-bash $SCRIPT_FILE
+templates_to_build=("fireworks" "together")
+for build_template in "${templates_to_build[@]}"; do
+  echo "Building $build_template template"
+  SCRIPT_FILE=$(mktemp)
+  echo "#!/bin/bash" > $SCRIPT_FILE
+  echo "set -euo pipefail" >> $SCRIPT_FILE
+  echo "set -x" >> $SCRIPT_FILE
+  llama stack build --template $build_template --print-deps-only >> $SCRIPT_FILE
+
+  echo "Running script $SCRIPT_FILE"
+  bash $SCRIPT_FILE
+done
 
 uv pip install pytest nbval pytest-asyncio
 
-TMPDIR=$(mktemp -d)
-cd $TMPDIR
 git clone --depth 1 https://github.com/meta-llama/llama-stack.git
 cd llama-stack
 
 git fetch origin refs/tags/v${VERSION}:refs/tags/v${VERSION}
 git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
+# Client-SDK uses Fireworks
+TEMPLATE=fireworks
 echo "Running client-sdk tests"
 cd tests/client-sdk
 LLAMA_STACK_CONFIG=$TEMPLATE pytest -s -v . \
   -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
   --safety-shield meta-llama/Llama-Guard-3-8B
 
+# Notebook tests use Together
 echo "Running notebook tests"
-cd $TMPDIR/llama-stack
-pytest -v -s --nbval-lax ./docs/getting_started.ipynb
-pytest -v -s --nbval-lax ./docs/notebooks/Llama_Stack_Benchmark_Evals.ipynb
 
+# very important to _not_ run from the llama-stack repo otherwise you 
+# won't pick up the installed version of the package
+cd $TMPDIR
+pytest -v -s --nbval-lax ./llama-stack/docs/getting_started.ipynb
+pytest -v -s --nbval-lax ./llama-stack/docs/notebooks/Llama_Stack_Benchmark_Evals.ipynb
