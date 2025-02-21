@@ -7,8 +7,8 @@ on:
         description: 'Version (e.g. 0.1.1rc2, 0.1.1.dev20250201)'
         required: true
         type: string
-  schedule:
-    - cron: "0 0 * * *"  # Run every day at midnight
+#  schedule:
+#    - cron: "0 0 * * *"  # Run every day at midnight
 
 jobs:
   publish-to-testpypi:
