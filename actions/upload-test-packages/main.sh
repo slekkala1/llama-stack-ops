@@ -72,7 +72,8 @@ test_library_client() {
   echo "Running client-sdk tests before uploading"
   LLAMA_STACK_CONFIG=$TEMPLATE pytest -s -v llama-stack/tests/client-sdk/ \
     -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
-    --safety-shield meta-llama/Llama-Guard-3-8B
+    --safety-shield meta-llama/Llama-Guard-3-8B \
+    --embedding-model all-MiniLM-L6-v2
 }
 
 test_docker() {
@@ -109,7 +110,8 @@ test_docker() {
 
   LLAMA_STACK_BASE_URL=http://localhost:$LLAMA_STACK_PORT pytest -s -v llama-stack/tests/client-sdk/ \
     -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
-    --safety-shield meta-llama/Llama-Guard-3-8B
+    --safety-shield meta-llama/Llama-Guard-3-8B \
+    --embedding-model all-MiniLM-L6-v2
 
   # stop the container
   docker stop llama-stack-$TEMPLATE
