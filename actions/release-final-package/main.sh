@@ -66,6 +66,7 @@ for repo in models stack-client-python stack; do
     perl -pi -e "s/__version__ = .*$/__version__ = \"$RELEASE_VERSION\"/" src/llama_stack_client/_version.py
   fi
 
+  uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
   git commit -a -m "Bump version to $RELEASE_VERSION"
   git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
 
