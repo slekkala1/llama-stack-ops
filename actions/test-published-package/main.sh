@@ -74,7 +74,8 @@ echo "Running client-sdk tests"
 cd tests/client-sdk
 LLAMA_STACK_CONFIG=$TEMPLATE pytest -s -v . \
   -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
-  --safety-shield meta-llama/Llama-Guard-3-8B
+  --safety-shield meta-llama/Llama-Guard-3-8B \
+  --embedding-model all-MiniLM-L6-v2
 
 # Notebook tests use Together
 echo "Running notebook tests"
