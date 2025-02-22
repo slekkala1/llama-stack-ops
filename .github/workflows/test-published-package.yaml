@@ -10,7 +10,6 @@ on:
 
 jobs:
   test-published-package:
-    name: Test published package
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

@@ -31,7 +31,6 @@ jobs:
         github_token: ${{ secrets.LLAMA_REPOS_PAT }}        
 
   test-published-package:
-    name: Test published package
     needs:
       - publish-to-testpypi
     runs-on: ubuntu-latest

@@ -31,7 +31,6 @@ jobs:
         github_token: ${{ secrets.LLAMA_REPOS_PAT }}        
 
   test-published-package:
-    name: Test published package
     needs:
       - publish-to-pypi
     runs-on: ubuntu-latest
@@ -44,8 +43,7 @@ jobs:
         tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
 
-  publish-dockers:
-    name: Publish Docker images
+  publish-docker-images:
     needs:
       - test-published-package
     runs-on: ubuntu-latest
