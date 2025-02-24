@@ -4,8 +4,8 @@ if [ -z "$VERSION" ]; then
   echo "You must set the VERSION environment variable" >&2
   exit 1
 fi
-GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
+GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
 TEMPLATE=fireworks
 
@@ -35,11 +35,14 @@ for repo in "${REPOS[@]}"; do
   uv build -q
   uv pip install dist/*.whl
 
+  # tag the commit on the branch because merging it back to main could move things
+  # beyond the cut-point (main could have been updated since the cut)
+  echo "Tagging llama-$repo at version $VERSION (not pushing yet)"
+  git tag -a "v$VERSION" -m "Release version $VERSION"
+
   echo "Merging rc-$VERSION into main"
   git checkout main
   git merge --ff-only "rc-$VERSION"
-  echo "Tagging llama-$repo at version $VERSION"
-  git tag -a "v$VERSION" -m "Release version $VERSION"
 
   echo "Uploading llama-$repo to testpypi"
   python -m twine upload \
