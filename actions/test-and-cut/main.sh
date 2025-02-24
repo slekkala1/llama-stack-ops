@@ -83,6 +83,7 @@ test_docker() {
   echo "Testing docker"
 
   USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack LLAMA_MODELS_DIR=llama-models \
+    LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
     llama stack build --template $TEMPLATE --image-type container
 
   docker images
