@@ -4,8 +4,7 @@ if [ -z "$VERSION" ]; then
   echo "You must set the VERSION environment variable" >&2
   exit 1
 fi
-
-if [ -z "$COMMIT_ID" ]; then
+if [ -z "${COMMIT_ID+x}" ]; then
   echo "You must set the COMMIT_ID environment variable" >&2
   exit 1
 fi
