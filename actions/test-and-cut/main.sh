@@ -132,7 +132,7 @@ test_docker
 for repo in "${REPOS[@]}"; do
   echo "Pushing branch rc-$VERSION for llama-$repo"
   cd llama-$repo
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "rc-$VERSION"
+  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "rc-$VERSION"
   cd ..
 
 done
