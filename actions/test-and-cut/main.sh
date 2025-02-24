@@ -10,6 +10,7 @@ if [ -z "${COMMIT_ID+x}" ]; then
 fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
+ONLY_TEST_DONT_CUT=${ONLY_TEST_DONT_CUT:-false}
 
 TEMPLATE=fireworks
 
@@ -128,6 +129,12 @@ uv pip install pytest nbval pytest-asyncio
 test_llama_cli
 test_library_client
 test_docker
+
+# if ONLY_TEST_DONT_CUT is truthy, don't cut the branch
+if [ "$ONLY_TEST_DONT_CUT" = "1" ] || [ "$ONLY_TEST_DONT_CUT" = "true" ]; then
+  echo "Not cutting (i.e., pushing the branch) because ONLY_TEST_DONT_CUT is true"
+  exit 0
+fi
 
 for repo in "${REPOS[@]}"; do
   echo "Pushing branch rc-$VERSION for llama-$repo"
