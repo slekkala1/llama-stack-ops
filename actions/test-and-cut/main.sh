@@ -4,8 +4,13 @@ if [ -z "$VERSION" ]; then
   echo "You must set the VERSION environment variable" >&2
   exit 1
 fi
-GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
+if [ -z "$COMMIT_ID" ]; then
+  echo "You must set the COMMIT_ID environment variable" >&2
+  exit 1
+fi
+
+GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
 TEMPLATE=fireworks
 
@@ -18,45 +23,44 @@ cd $TMPDIR
 uv venv -p python3.10
 source .venv/bin/activate
 
-uv pip install twine
+build_packages() {
+  uv pip install twine
 
-REPOS=(models stack-client-python stack)
-for repo in "${REPOS[@]}"; do
-  git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
-  cd llama-$repo
+  REPOS=(models stack-client-python stack)
+  for repo in "${REPOS[@]}"; do
+    git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
+    cd llama-$repo
 
-  if [ -n "$BRANCH" ]; then
-    git checkout -b "$BRANCH" "origin/$BRANCH"
-  fi
-  perl -pi -e "s/version = .*$/version = \"$VERSION\"/" pyproject.toml
-  if [ -f "src/llama_stack_client/_version.py" ]; then
-    perl -pi -e "s/__version__ = .*$/__version__ = \"$VERSION\"/" src/llama_stack_client/_version.py
-  fi
+    if [ "$repo" == "stack" ] && [ -n "$COMMIT_ID" ]; then
+      git checkout -b "rc-$VERSION" "$COMMIT_ID"
+    else
+      git checkout -b "rc-$VERSION"
+    fi
 
-  # Need to do this sequentially actually to capture the dependencies properly
-  #
-  # perl -pi -e "s/llama-models>=.*/llama-models>=$VERSION/" requirements.txt
-  # perl -pi -e "s/llama-stack-client>=.*/llama-stack-client>=$VERSION/" requirements.txt
-  uv build -q
-  cd ..
-done
+    perl -pi -e "s/version = .*$/version = \"$VERSION\"/" pyproject.toml
+    if [ -f "src/llama_stack_client/_version.py" ]; then
+      perl -pi -e "s/__version__ = .*$/__version__ = \"$VERSION\"/" src/llama_stack_client/_version.py
+    fi
 
-uv pip install llama-models/dist/llama_models-$VERSION-py3*.whl
-# check Tokenizer.get_instance() and add a simple __main__ to that file
+    perl -pi -e "s/llama-models>=.*/llama-models>=$VERSION\",/" pyproject.toml
+    perl -pi -e "s/llama-stack-client>=.*/llama-stack-client>=$VERSION\",/" pyproject.toml
+      
+    uv build -q
+    uv pip install dist/*.whl
 
-uv pip install llama-stack-client-python/dist/llama_stack_client-$VERSION-py3*.whl
-# add a minimal test
+    git commit -am "Release candidate $VERSION"
+    cd ..
+  done
+}
 
-uv pip install llama-stack/dist/llama_stack-$VERSION-py3*.whl
-uv pip list | grep llama
-llama model prompt-format -m Llama3.2-11B-Vision-Instruct
-llama model list
-llama stack list-apis
-llama stack list-providers inference
-llama stack list-providers telemetry
-
-uv pip install pytest nbval pytest-asyncio
-
+test_llama_cli() {
+  uv pip list | grep llama
+  llama model prompt-format -m Llama3.2-11B-Vision-Instruct
+  llama model list
+  llama stack list-apis
+  llama stack list-providers inference
+  llama stack list-providers telemetry
+}
 
 test_library_client() {
   echo "Building template"
@@ -117,32 +121,20 @@ test_docker() {
   docker stop llama-stack-$TEMPLATE
 }
 
+build_packages
+
+uv pip install pytest nbval pytest-asyncio
+
+test_llama_cli
 test_library_client
 test_docker
 
-# TODO: we must re-build the packages now ensuring proper dependencies are captured
-# otherwise one needs to install them like (P1==test-version P2==test-version P3==test-version)
 for repo in "${REPOS[@]}"; do
-  echo "Uploading llama-$repo to testpypi"
-  # tag the repo for this version
-  echo "Tagging llama-$repo at version $VERSION"
+  echo "Pushing branch rc-$VERSION for llama-$repo"
   cd llama-$repo
-  git tag -a "v$VERSION" -m "Release version $VERSION"
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "rc-$VERSION"
   cd ..
 
-  python -m twine upload \
-    --repository-url https://test.pypi.org/legacy/ \
-    --skip-existing \
-    llama-$repo/dist/*.whl llama-$repo/dist/*.tar.gz
-
-  # push the tag
-  echo "Pushing tag for llama-$repo"
-  cd llama-$repo
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "v$VERSION"
-  cd ..
 done
 
-echo "Successfully uploaded packages to testpypi"
-
-# test run docker
-# podman run --network host -it -p 5000:5000 -v ~/.llama:/root/.llama --gpus=all llamastack-local-gpu
+echo "Successfully cut a release candidate branch $VERSION"
