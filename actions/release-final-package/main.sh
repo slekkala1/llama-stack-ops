@@ -59,7 +59,8 @@ for repo in models stack-client-python stack; do
   git fetch origin refs/tags/v${RC_VERSION}:refs/tags/v${RC_VERSION}
   git checkout -b release-$RELEASE_VERSION refs/tags/v${RC_VERSION}
 
-
+  # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
+  # cringe perl code
   perl -pi -e "s/version = .*$/version = \"$RELEASE_VERSION\"/" pyproject.toml
   perl -pi -e "s/llama-models>=.*,/llama-models>=$RELEASE_VERSION\",/" pyproject.toml
   perl -pi -e "s/llama-stack-client>=.*,/llama-stack-client>=$RELEASE_VERSION\",/" pyproject.toml
@@ -69,10 +70,10 @@ for repo in models stack-client-python stack; do
   fi
 
   uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
-  git commit -am "Bump version to $RELEASE_VERSION"
+  git commit -a -m "Bump version to $RELEASE_VERSION" --amend
   git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
 
-  uv build
+  uv build -q
   uv pip install dist/*.whl
   cd ..
 done
@@ -108,7 +109,9 @@ for repo in models stack-client-python stack; do
 
   # push the new commit to main and push the tag
   echo "Pushing tag v$RELEASE_VERSION for $repo"
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "release-$RELEASE_VERSION:main"
+  git checkout main
+  git rebase --onto main $(git merge-base main release-$RELEASE_VERSION) release-$RELEASE_VERSION
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "main"
   git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "v$RELEASE_VERSION"
   cd ..
 done
