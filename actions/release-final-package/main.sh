@@ -12,6 +12,7 @@ fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
+DRY_RUN=${DRY_RUN:-false}
 
 set -euo pipefail
 
@@ -115,6 +116,11 @@ llama stack list-apis
 llama stack list-providers inference
 
 llama stack build --template together --print-deps-only
+
+if is_truthy "$DRY_RUN"; then
+  echo "DRY RUN: skipping pypi upload"
+  exit 0
+fi
 
 for repo in "${REPOS[@]}"; do
   echo "Uploading llama-$repo to pypi"
