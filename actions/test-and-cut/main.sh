@@ -11,11 +11,21 @@ fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 ONLY_TEST_DONT_CUT=${ONLY_TEST_DONT_CUT:-false}
+LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 
 TEMPLATE=fireworks
 
 set -euo pipefail
 set -x
+
+
+is_truthy() {
+  case "$1" in
+    true|1) return 0 ;;
+    false|0) return 1 ;;
+    *) return 1 ;;
+  esac
+}
 
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
@@ -27,24 +37,38 @@ build_packages() {
   uv pip install twine
 
   REPOS=(models stack-client-python stack)
+  if is_truthy "$LLAMA_STACK_ONLY"; then
+    REPOS=(stack)
+  fi
+
   for repo in "${REPOS[@]}"; do
     git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
     cd llama-$repo
 
     if [ "$repo" == "stack" ] && [ -n "$COMMIT_ID" ]; then
-      git checkout -b "rc-$VERSION" "$COMMIT_ID"
+      REF="${COMMIT_ID#origin/}"
+      git fetch origin "$REF"
+
+      # Use FETCH_HEAD which is where the fetched commit is stored
+      git checkout -b "rc-$VERSION" FETCH_HEAD
     else
       git checkout -b "rc-$VERSION"
     fi
 
     perl -pi -e "s/version = .*$/version = \"$VERSION\"/" pyproject.toml
-    if [ -f "src/llama_stack_client/_version.py" ]; then
-      perl -pi -e "s/__version__ = .*$/__version__ = \"$VERSION\"/" src/llama_stack_client/_version.py
+
+    if ! is_truthy "$LLAMA_STACK_ONLY"; then
+      # this one is only applicable for llama-stack-client-python
+      if [ -f "src/llama_stack_client/_version.py" ]; then
+        perl -pi -e "s/__version__ = .*$/__version__ = \"$VERSION\"/" src/llama_stack_client/_version.py
+      fi
+
+      # this is applicable for llama-stack repo but we should not do it when
+      # LLAMA_STACK_ONLY is true
+      perl -pi -e "s/llama-models>=.*/llama-models>=$VERSION\",/" pyproject.toml
+      perl -pi -e "s/llama-stack-client>=.*/llama-stack-client>=$VERSION\",/" pyproject.toml
     fi
 
-    perl -pi -e "s/llama-models>=.*/llama-models>=$VERSION\",/" pyproject.toml
-    perl -pi -e "s/llama-stack-client>=.*/llama-stack-client>=$VERSION\",/" pyproject.toml
-      
     uv build -q
     uv pip install dist/*.whl
 
@@ -83,9 +107,14 @@ test_library_client() {
 test_docker() {
   echo "Testing docker"
 
-  USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack LLAMA_MODELS_DIR=llama-models \
-    LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
-    llama stack build --template $TEMPLATE --image-type container
+  if is_truthy "$LLAMA_STACK_ONLY"; then
+    USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
+      llama stack build --template $TEMPLATE --image-type container
+  else
+    USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack LLAMA_MODELS_DIR=llama-models \
+      LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
+      llama stack build --template $TEMPLATE --image-type container
+  fi
 
   docker images
 
@@ -131,7 +160,7 @@ test_library_client
 test_docker
 
 # if ONLY_TEST_DONT_CUT is truthy, don't cut the branch
-if [ "$ONLY_TEST_DONT_CUT" = "1" ] || [ "$ONLY_TEST_DONT_CUT" = "true" ]; then
+if is_truthy "$ONLY_TEST_DONT_CUT"; then
   echo "Not cutting (i.e., pushing the branch) because ONLY_TEST_DONT_CUT is true"
   exit 0
 fi

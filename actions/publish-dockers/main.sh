@@ -22,7 +22,7 @@ release_exists() {
 
 if release_exists "test.pypi"; then
   echo "Version $VERSION found in test.pypi"
-  PYPI_SOURCE="testpypi" 
+  PYPI_SOURCE="testpypi"
 elif release_exists "pypi"; then
   echo "Version $VERSION found in pypi"
   PYPI_SOURCE="pypi"

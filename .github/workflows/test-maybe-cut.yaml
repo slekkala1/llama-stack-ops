@@ -41,6 +41,6 @@ jobs:
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
         together_api_key: ${{ secrets.TOGETHER_API_KEY }}
         tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
-        # TODO: this will expire in 90 days; we should figure out a 
+        # TODO: this will expire in 90 days; we should figure out a
         # GitHub App setup that can be used instead
-        github_token: ${{ secrets.LLAMA_REPOS_PAT }}        
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}

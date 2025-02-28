@@ -26,9 +26,9 @@ jobs:
       with:
         release_version: ${{ inputs.release_version }}
         rc_version: ${{ inputs.rc_version }}
-        # TODO: this will expire in 90 days; we should figure out a 
+        # TODO: this will expire in 90 days; we should figure out a
         # GitHub App setup that can be used instead
-        github_token: ${{ secrets.LLAMA_REPOS_PAT }}        
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}
 
   test-published-package:
     needs:

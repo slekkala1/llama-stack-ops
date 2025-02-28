@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$VERSION" ]; then
-  echo "You must set the VERSION environment variable" >&2 
+  echo "You must set the VERSION environment variable" >&2
   exit 1
 fi
 
@@ -80,7 +80,7 @@ LLAMA_STACK_CONFIG=$TEMPLATE pytest -s -v . \
 # Notebook tests use Together
 echo "Running notebook tests"
 
-# very important to _not_ run from the llama-stack repo otherwise you 
+# very important to _not_ run from the llama-stack repo otherwise you
 # won't pick up the installed version of the package
 cd $TMPDIR
 pytest -v -s --nbval-lax ./llama-stack/docs/getting_started.ipynb

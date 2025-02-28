@@ -36,7 +36,7 @@ if [ $found_rc -eq 0 ]; then
   exit 1
 fi
 
-# check that tag v$RC_VERSION exists for all repos. each repo is remote 
+# check that tag v$RC_VERSION exists for all repos. each repo is remote
 # github.com/meta-llama/llama-$repo.git
 for repo in models stack-client-python stack; do
   if ! git ls-remote --tags https://github.com/meta-llama/llama-$repo.git "refs/tags/v$RC_VERSION" | grep -q .; then
@@ -53,7 +53,7 @@ source .venv/bin/activate
 
 uv pip install twine
 
-for repo in models stack-client-python stack; do  
+for repo in models stack-client-python stack; do
   git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
   cd llama-$repo
   git fetch origin refs/tags/v${RC_VERSION}:refs/tags/v${RC_VERSION}
@@ -79,7 +79,7 @@ for repo in models stack-client-python stack; do
 done
 
 # TODO: This is too slow right now; skipping for now
-# 
+#
 # git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-stack-apps.git"
 # cd llama-stack-apps
 # perl -pi -e "s/llama-stack>=.*/llama-stack>=$RELEASE_VERSION/" requirements.txt
