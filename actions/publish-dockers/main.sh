@@ -40,7 +40,7 @@ source .venv/bin/activate
 uv pip install --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple \
   --index-strategy unsafe-best-match \
-  llama-stack==${VERSION} llama-models==${VERSION} llama-stack-client==${VERSION}
+  llama-stack==${VERSION}
 
 which llama
 llama stack list-apis
