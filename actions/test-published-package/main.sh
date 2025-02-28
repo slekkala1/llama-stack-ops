@@ -27,7 +27,7 @@ while [ $attempt -le $max_attempts ]; do
     --index-strategy unsafe-best-match \
     --index-url https://pypi.org/simple/ \
     --extra-index-url https://test.pypi.org/simple/ \
-    llama-stack==${VERSION} llama-models==${VERSION} llama-stack-client==${VERSION}; then
+    llama-stack==${VERSION}; then
     echo "Package installed successfully"
     break
   fi
