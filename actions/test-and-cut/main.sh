@@ -36,7 +36,7 @@ source .venv/bin/activate
 build_packages() {
   uv pip install twine
 
-  REPOS=(models stack-client-python stack)
+  REPOS=(stack-client-python stack)
   if is_truthy "$LLAMA_STACK_ONLY"; then
     REPOS=(stack)
   fi
@@ -65,7 +65,6 @@ build_packages() {
 
       # this is applicable for llama-stack repo but we should not do it when
       # LLAMA_STACK_ONLY is true
-      perl -pi -e "s/llama-models>=.*/llama-models>=$VERSION\",/" pyproject.toml
       perl -pi -e "s/llama-stack-client>=.*/llama-stack-client>=$VERSION\",/" pyproject.toml
     fi
 
@@ -111,7 +110,7 @@ test_docker() {
     USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
       llama stack build --template $TEMPLATE --image-type container
   else
-    USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack LLAMA_MODELS_DIR=llama-models \
+    USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
       LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
       llama stack build --template $TEMPLATE --image-type container
   fi
@@ -125,7 +124,6 @@ test_docker() {
     -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
     -e TAVILY_SEARCH_API_KEY=$TAVILY_SEARCH_API_KEY \
     -v $(pwd)/llama-stack:/app/llama-stack-source \
-    -v $(pwd)/llama-models:/app/llama-models-source \
     distribution-$TEMPLATE:dev \
     --port $LLAMA_STACK_PORT
 

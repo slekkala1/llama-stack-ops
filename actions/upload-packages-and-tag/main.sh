@@ -29,7 +29,7 @@ source .venv/bin/activate
 
 uv pip install twine
 
-REPOS=(models stack-client-python stack)
+REPOS=(stack-client-python stack)
 if is_truthy "$LLAMA_STACK_ONLY"; then
   REPOS=(stack)
 fi

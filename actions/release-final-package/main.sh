@@ -48,7 +48,7 @@ if [ $found_rc -eq 0 ]; then
 fi
 
 
-REPOS=(models stack-client-python stack)
+REPOS=(stack-client-python stack)
 if is_truthy "$LLAMA_STACK_ONLY"; then
   REPOS=(stack)
 fi
@@ -82,7 +82,6 @@ for repo in "${REPOS[@]}"; do
   perl -pi -e "s/version = .*$/version = \"$RELEASE_VERSION\"/" pyproject.toml
 
   if ! is_truthy "$LLAMA_STACK_ONLY"; then
-    perl -pi -e "s/llama-models>=.*,/llama-models>=$RELEASE_VERSION\",/" pyproject.toml
     perl -pi -e "s/llama-stack-client>=.*,/llama-stack-client>=$RELEASE_VERSION\",/" pyproject.toml
 
     if [ -f "src/llama_stack_client/_version.py" ]; then
