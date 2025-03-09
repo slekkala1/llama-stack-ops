@@ -86,6 +86,7 @@ add_bump_version_commit() {
     fi
   fi
 
+  uv sync
   uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
   git commit -a -m "Bump version to $version"
 }
