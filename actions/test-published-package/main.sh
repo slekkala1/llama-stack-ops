@@ -73,7 +73,7 @@ git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 # Client-SDK uses Fireworks
 echo "Running integration tests"
-pytest -s -v tests/integration/ \
+LLAMA_STACK_TEST_INTERVAL_SECONDS=1.5 pytest -s -v tests/integration/ \
   --stack-config $TEMPLATE \
   -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
   --text-model meta-llama/Llama-3.1-8B-Instruct \
