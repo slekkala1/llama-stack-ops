@@ -10,6 +10,11 @@ on:
         description: 'Version (e.g. 0.1.1rc2); if optional, will not cut a branch'
         required: false
         type: string
+      template:
+        description: 'Template to use for the release candidate (fireworks, together) (default: fireworks)'
+        required: false
+        type: string
+        default: 'fireworks'
   schedule:
     - cron: "0 0 * * *"  # Run every day at midnight
 
@@ -48,6 +53,7 @@ jobs:
       with:
         version: ${{ steps.version.outputs.value }}
         commit_id: ${{ steps.inputs.outputs.commit_id }}
+        template: ${{ inputs.template }}
         only_test_dont_cut: ${{ steps.version.outputs.only_test }}
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
         together_api_key: ${{ secrets.TOGETHER_API_KEY }}

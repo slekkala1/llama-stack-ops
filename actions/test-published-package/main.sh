@@ -5,6 +5,8 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+TEMPLATE=${TEMPLATE:-fireworks}
+
 set -euo pipefail
 set -x
 
@@ -70,7 +72,6 @@ git fetch origin refs/tags/v${VERSION}:refs/tags/v${VERSION}
 git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 # Client-SDK uses Fireworks
-TEMPLATE=fireworks
 echo "Running integration tests"
 pytest -s -v tests/integration/ \
   --stack-config $TEMPLATE \

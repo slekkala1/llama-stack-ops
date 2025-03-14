@@ -11,6 +11,11 @@ on:
         description: 'Commit ID for "cut" (default: origin/main)'
         required: false
         type: string
+      template:
+        description: 'Template to use for testing the release candidate (fireworks, together) (default: fireworks)'
+        required: false
+        type: string
+        default: 'fireworks'
       llama_stack_only:
         description: 'Only cut a llama-stack release candidate (default: false)'
         required: false
@@ -33,6 +38,7 @@ jobs:
         version: ${{ inputs.version }}
         commit_id: ${{ inputs.commit_id }}
         llama_stack_only: ${{ inputs.llama_stack_only }}
+        template: ${{ inputs.template }}
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
         together_api_key: ${{ secrets.TOGETHER_API_KEY }}
         tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
@@ -68,6 +74,7 @@ jobs:
     - uses: ./actions/test-published-package
       with:
         version: ${{ inputs.version }}
+        template: ${{ inputs.template }}
         together_api_key: ${{ secrets.TOGETHER_API_KEY }}
         tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}

@@ -12,8 +12,7 @@ fi
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 ONLY_TEST_DONT_CUT=${ONLY_TEST_DONT_CUT:-false}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
-
-TEMPLATE=fireworks
+TEMPLATE=${TEMPLATE:-fireworks}
 
 set -euo pipefail
 set -x

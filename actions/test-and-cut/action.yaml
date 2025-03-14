@@ -12,6 +12,10 @@ inputs:
     description: 'Do not cut a branch, only run tests (default: false)'
     required: false
     default: 'false'
+  template:
+    description: 'Template to use for the release candidate (fireworks, together) (default: fireworks)'
+    required: false
+    default: 'fireworks'
   llama_stack_only:
     description: 'Only cut a llama-stack release candidate (default: false)'
     required: false
@@ -59,6 +63,7 @@ runs:
       env:
         VERSION: ${{ inputs.version }}
         COMMIT_ID: ${{ inputs.commit_id }}
+        TEMPLATE: ${{ inputs.template }}
         ONLY_TEST_DONT_CUT: ${{ inputs.only_test_dont_cut }}
         LLAMA_STACK_ONLY: ${{ inputs.llama_stack_only }}
         TOGETHER_API_KEY: ${{ inputs.together_api_key }}
