@@ -88,10 +88,10 @@ add_bump_version_commit() {
   fi
 
   if is_truthy "$should_run_uv_sync"; then
-    uv sync
+    uv sync --no-cache
   fi
   uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
-  git commit -a -m "Bump version to $version"
+  git commit -a -m "build: Bump version to $version"
 }
 
 for repo in "${REPOS[@]}"; do
