@@ -73,6 +73,7 @@ uv pip install twine
 add_bump_version_commit() {
   local repo=$1
   local version=$2
+  local should_run_uv_sync=$3
 
   # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
   # cringe perl code
@@ -86,7 +87,9 @@ add_bump_version_commit() {
     fi
   fi
 
-  uv sync
+  if is_truthy "$should_run_uv_sync"; then
+    uv sync
+  fi
   uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
   git commit -a -m "Bump version to $version"
 }
@@ -97,7 +100,8 @@ for repo in "${REPOS[@]}"; do
   git fetch origin refs/tags/v${RC_VERSION}:refs/tags/v${RC_VERSION}
   git checkout -b release-$RELEASE_VERSION refs/tags/v${RC_VERSION}
 
-  add_bump_version_commit $repo $RELEASE_VERSION
+  # don't run uv sync here because the dependency isn't pushed upstream so uv will fail
+  add_bump_version_commit $repo $RELEASE_VERSION false
 
   git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
 
@@ -150,7 +154,7 @@ for repo in "${REPOS[@]}"; do
     # not quite correct because currently the idea is the LLAMA_STACK_ONLY=1 is set when this is a
     # bugfix release but that's not guaranteed to be true in the future.
     git checkout main
-    add_bump_version_commit $repo $RELEASE_VERSION
+    add_bump_version_commit $repo $RELEASE_VERSION true
     git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "main"
   fi
   cd ..
