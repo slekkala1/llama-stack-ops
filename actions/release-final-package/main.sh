@@ -73,7 +73,7 @@ uv pip install twine
 add_bump_version_commit() {
   local repo=$1
   local version=$2
-  local should_run_uv_sync=$3
+  local should_run_uv_lock=$3
 
   # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
   # cringe perl code
@@ -87,9 +87,10 @@ add_bump_version_commit() {
     fi
   fi
 
-  if is_truthy "$should_run_uv_sync"; then
-    uv sync --no-cache
+  if is_truthy "$should_run_uv_lock"; then
+    uv lock --no-cache
   fi
+
   uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
   git commit -a -m "build: Bump version to $version"
 }
@@ -100,7 +101,7 @@ for repo in "${REPOS[@]}"; do
   git fetch origin refs/tags/v${RC_VERSION}:refs/tags/v${RC_VERSION}
   git checkout -b release-$RELEASE_VERSION refs/tags/v${RC_VERSION}
 
-  # don't run uv sync here because the dependency isn't pushed upstream so uv will fail
+  # don't run uv lock here because the dependency isn't pushed upstream so uv will fail
   add_bump_version_commit $repo $RELEASE_VERSION false
 
   git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
