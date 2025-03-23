@@ -14,7 +14,6 @@ if [ -z "${CLIENT_PYTHON_COMMIT_ID+x}" ]; then
   exit 1
 fi
 
-
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 ONLY_TEST_DONT_CUT=${ONLY_TEST_DONT_CUT:-false}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
@@ -23,12 +22,11 @@ TEMPLATE=${TEMPLATE:-fireworks}
 set -euo pipefail
 set -x
 
-
 is_truthy() {
   case "$1" in
-    true|1) return 0 ;;
-    false|0) return 1 ;;
-    *) return 1 ;;
+  true | 1) return 0 ;;
+  false | 0) return 1 ;;
+  *) return 1 ;;
   esac
 }
 
@@ -97,7 +95,7 @@ test_llama_cli() {
 run_integration_tests() {
   stack_config=$1
   shift
-  LLAMA_STACK_TEST_INTERVAL_SECONDS=1.0 pytest -s -v llama-stack/tests/integration/ \
+  LLAMA_STACK_TEST_INTERVAL_SECONDS=1.25 pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
     -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
     --text-model meta-llama/Llama-3.1-8B-Instruct \

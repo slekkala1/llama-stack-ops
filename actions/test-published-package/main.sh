@@ -49,15 +49,14 @@ llama stack list-apis
 llama stack list-providers inference
 llama stack list-providers telemetry
 
-
 templates_to_build=("fireworks" "together")
 for build_template in "${templates_to_build[@]}"; do
   echo "Building $build_template template"
   SCRIPT_FILE=$(mktemp)
-  echo "#!/bin/bash" > $SCRIPT_FILE
-  echo "set -euo pipefail" >> $SCRIPT_FILE
-  echo "set -x" >> $SCRIPT_FILE
-  llama stack build --template $build_template --print-deps-only >> $SCRIPT_FILE
+  echo "#!/bin/bash" >$SCRIPT_FILE
+  echo "set -euo pipefail" >>$SCRIPT_FILE
+  echo "set -x" >>$SCRIPT_FILE
+  llama stack build --template $build_template --print-deps-only >>$SCRIPT_FILE
 
   echo "Running script $SCRIPT_FILE"
   bash $SCRIPT_FILE
@@ -73,7 +72,7 @@ git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 # Client-SDK uses Fireworks
 echo "Running integration tests"
-LLAMA_STACK_TEST_INTERVAL_SECONDS=1.0 pytest -s -v tests/integration/ \
+LLAMA_STACK_TEST_INTERVAL_SECONDS=1.25 pytest -s -v tests/integration/ \
   --stack-config $TEMPLATE \
   -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
   --text-model meta-llama/Llama-3.1-8B-Instruct \
