@@ -72,7 +72,7 @@ git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 # Client-SDK uses Fireworks
 echo "Running integration tests"
-LLAMA_STACK_TEST_INTERVAL_SECONDS=1.25 pytest -s -v tests/integration/ \
+LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -s -v tests/integration/ \
   --stack-config $TEMPLATE \
   -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
   --text-model meta-llama/Llama-3.3-70B-Instruct \
@@ -86,5 +86,5 @@ echo "Running notebook tests"
 # very important to _not_ run from the llama-stack repo otherwise you
 # won't pick up the installed version of the package
 cd $TMPDIR
-LLAMA_STACK_TEST_INTERVAL_SECONDS=1.5 pytest -v -s --nbval-lax ./llama-stack/docs/getting_started.ipynb
-LLAMA_STACK_TEST_INTERVAL_SECONDS=1.5 pytest -v -s --nbval-lax ./llama-stack/docs/notebooks/Llama_Stack_Benchmark_Evals.ipynb
+LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -v -s --nbval-lax ./llama-stack/docs/getting_started.ipynb
+LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -v -s --nbval-lax ./llama-stack/docs/notebooks/Llama_Stack_Benchmark_Evals.ipynb

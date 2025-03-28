@@ -95,7 +95,7 @@ test_llama_cli() {
 run_integration_tests() {
   stack_config=$1
   shift
-  LLAMA_STACK_TEST_INTERVAL_SECONDS=1.25 pytest -s -v llama-stack/tests/integration/ \
+  LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
     -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
     --text-model meta-llama/Llama-3.3-70B-Instruct \
