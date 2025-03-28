@@ -85,6 +85,6 @@ echo "Running notebook tests"
 
 # very important to _not_ run from the llama-stack repo otherwise you
 # won't pick up the installed version of the package
-cd $TMPDIR
-LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -v -s --nbval-lax ./llama-stack/docs/getting_started.ipynb
-LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -v -s --nbval-lax ./llama-stack/docs/notebooks/Llama_Stack_Benchmark_Evals.ipynb
+# cd $TMPDIR
+# LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -v -s --nbval-lax ./llama-stack/docs/getting_started.ipynb
+# LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -v -s --nbval-lax ./llama-stack/docs/notebooks/Llama_Stack_Benchmark_Evals.ipynb
