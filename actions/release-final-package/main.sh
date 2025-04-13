@@ -63,12 +63,6 @@ for repo in "${REPOS[@]}"; do
 done
 
 set -x
-TMPDIR=$(mktemp -d)
-cd $TMPDIR
-uv venv -p python3.10
-source .venv/bin/activate
-
-uv pip install twine
 
 add_bump_version_commit() {
   local repo=$1
@@ -95,6 +89,13 @@ add_bump_version_commit() {
   git commit -a -m "build: Bump version to $version"
 }
 
+TMPDIR=$(mktemp -d)
+cd $TMPDIR
+uv venv -p python3.10 build-env
+source build-env/bin/activate
+
+uv pip install twine
+
 for repo in "${REPOS[@]}"; do
   git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
   cd llama-$repo
@@ -110,16 +111,6 @@ for repo in "${REPOS[@]}"; do
   uv pip install dist/*.whl
   cd ..
 done
-
-# TODO: This is too slow right now; skipping for now
-#
-# git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-stack-apps.git"
-# cd llama-stack-apps
-# perl -pi -e "s/llama-stack>=.*/llama-stack>=$RELEASE_VERSION/" requirements.txt
-# perl -pi -e "s/llama-stack-client.*/llama-stack-client>=$RELEASE_VERSION/" requirements.txt
-# git commit -a -m "Bump version to $RELEASE_VERSION"
-# git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
-# cd ..
 
 which llama
 llama model prompt-format -m Llama3.2-11B-Vision-Instruct
@@ -142,7 +133,14 @@ for repo in "${REPOS[@]}"; do
     "llama-$repo/dist/*.whl" "llama-$repo/dist/*.tar.gz"
 done
 
+deactivate
+rm -rf build-env
+
 for repo in "${REPOS[@]}"; do
+  cd $TMPDIR
+  uv venv -p python3.10 repo-$repo-env
+  source repo-$repo-env/bin/activate
+
   cd llama-$repo
 
   # push the new commit to main and push the tag
@@ -158,7 +156,8 @@ for repo in "${REPOS[@]}"; do
     add_bump_version_commit $repo $RELEASE_VERSION true
     git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "main"
   fi
-  cd ..
+
+  deactivate
 done
 
 echo "Done"

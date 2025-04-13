@@ -25,10 +25,6 @@ runs:
       with:
         python-version: '3.10'
         enable-cache: false
-    - name: Install dependencies
-      shell: bash
-      run: |
-        sudo apt-get install -y bubblewrap
 
     - name: Configure Git
       shell: bash
@@ -46,9 +42,3 @@ runs:
       run: |
         chmod +x ${{ github.action_path }}/main.sh
         ${{ github.action_path }}/main.sh
-
-# Example usage in workflow:
-# - uses: meta-llama/llama-stack-ops/actions/commit-final-packages@main
-#   with:
-#     version: '1.0.0'
-#     pypi_token: ${{ secrets.PYPI_TOKEN }}
