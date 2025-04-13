@@ -12,10 +12,14 @@ on:
         required: false
         type: string
       template:
-        description: 'Template to use for testing the release candidate (fireworks, together) (default: fireworks)'
+        description: 'Template to use for testing the release candidate'
         required: false
         type: string
         default: 'fireworks'
+      cut_mode:
+        description: 'Mode to run the script in (test-and-cut, cut-only)'
+        type: string
+        default: 'test-and-cut'
       llama_stack_only:
         description: 'Only cut a llama-stack release candidate (default: false)'
         required: false
@@ -38,6 +42,7 @@ jobs:
         version: ${{ inputs.version }}
         commit_id: ${{ inputs.commit_id }}
         llama_stack_only: ${{ inputs.llama_stack_only }}
+        cut_mode: ${{ inputs.cut_mode }}
         template: ${{ inputs.template }}
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
         together_api_key: ${{ secrets.TOGETHER_API_KEY }}
