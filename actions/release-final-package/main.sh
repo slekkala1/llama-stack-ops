@@ -48,7 +48,7 @@ if [ $found_rc -eq 0 ]; then
 fi
 
 
-REPOS=(stack-client-python stack)
+REPOS=(stack-client-python stack-client-typescript stack)
 if is_truthy "$LLAMA_STACK_ONLY"; then
   REPOS=(stack)
 fi
@@ -69,24 +69,30 @@ add_bump_version_commit() {
   local version=$2
   local should_run_uv_lock=$3
 
-  # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
-  # cringe perl code
-  perl -pi -e "s/version = .*$/version = \"$version\"/" pyproject.toml
+  if [ "$repo" == "stack-client-typescript" ]; then
+    perl -pi -e "s/\"version\": \".*\"/\"version\": \"$version\"/" package.json
+    npx yarn build
+  else
+    # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
+    # cringe perl code
+    perl -pi -e "s/version = .*$/version = \"$version\"/" pyproject.toml
 
-  if ! is_truthy "$LLAMA_STACK_ONLY"; then
-    perl -pi -e "s/llama-stack-client>=.*,/llama-stack-client>=$RELEASE_VERSION\",/" pyproject.toml
+    if ! is_truthy "$LLAMA_STACK_ONLY"; then
+      perl -pi -e "s/llama-stack-client>=.*,/llama-stack-client>=$RELEASE_VERSION\",/" pyproject.toml
 
-    if [ -f "src/llama_stack_client/_version.py" ]; then
-      perl -pi -e "s/__version__ = .*$/__version__ = \"$version\"/" src/llama_stack_client/_version.py
+      if [ -f "src/llama_stack_client/_version.py" ]; then
+        perl -pi -e "s/__version__ = .*$/__version__ = \"$version\"/" src/llama_stack_client/_version.py
+      fi
     fi
+
+    if is_truthy "$should_run_uv_lock"; then
+      uv lock --no-cache
+    fi
+
+    uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
   fi
 
-  if is_truthy "$should_run_uv_lock"; then
-    uv lock --no-cache
-  fi
-
-  uv export --frozen --no-hashes --no-emit-project --output-file=requirements.txt
-  git commit -a -m "build: Bump version to $version"
+  git commit -am "build: Bump version to $version"
 }
 
 TMPDIR=$(mktemp -d)
@@ -95,6 +101,7 @@ uv venv -p python3.10 build-env
 source build-env/bin/activate
 
 uv pip install twine
+npm install -g yarn
 
 for repo in "${REPOS[@]}"; do
   git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
@@ -107,8 +114,14 @@ for repo in "${REPOS[@]}"; do
 
   git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
 
-  uv build -q
-  uv pip install dist/*.whl
+  if [ "$repo" == "stack-client-typescript" ]; then
+    npx yarn build
+    npx yarn install
+  else
+    uv build -q
+    uv pip install dist/*.whl
+  fi
+
   cd ..
 done
 
@@ -126,11 +139,16 @@ if is_truthy "$DRY_RUN"; then
 fi
 
 for repo in "${REPOS[@]}"; do
+  cd llama-$repo
   echo "Uploading llama-$repo to pypi"
-  python -m twine upload \
-    --skip-existing \
-    --non-interactive \
-    "llama-$repo/dist/*.whl" "llama-$repo/dist/*.tar.gz"
+  if [ "$repo" == "stack-client-typescript" ]; then
+    npx yarn publish --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
+  else
+    python -m twine upload \
+      --skip-existing \
+      --non-interactive \
+      "dist/*.whl" "dist/*.tar.gz"
+  fi
 done
 
 deactivate
@@ -138,8 +156,10 @@ rm -rf build-env
 
 for repo in "${REPOS[@]}"; do
   cd $TMPDIR
-  uv venv -p python3.10 repo-$repo-env
-  source repo-$repo-env/bin/activate
+  if [ "$repo" != "stack-client-typescript" ]; then
+    uv venv -p python3.10 repo-$repo-env
+    source repo-$repo-env/bin/activate
+  fi
 
   cd llama-$repo
 
@@ -157,7 +177,9 @@ for repo in "${REPOS[@]}"; do
     git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "main"
   fi
 
-  deactivate
+  if [ "$repo" != "stack-client-typescript" ]; then
+    deactivate
+  fi
 done
 
 echo "Done"

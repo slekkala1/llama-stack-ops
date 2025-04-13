@@ -43,8 +43,9 @@ source .venv/bin/activate
 
 build_packages() {
   uv pip install twine
+  npm install -g yarn
 
-  REPOS=(stack-client-python stack)
+  REPOS=(stack-client-python stack-client-typescript stack)
   if is_truthy "$LLAMA_STACK_ONLY"; then
     REPOS=(stack)
   fi
@@ -74,14 +75,22 @@ build_packages() {
       if [ -f "src/llama_stack_client/_version.py" ]; then
         perl -pi -e "s/__version__ = .*$/__version__ = \"$VERSION\"/" src/llama_stack_client/_version.py
       fi
+      if [ -f "package.json" ]; then
+        perl -pi -e "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+      fi
 
       # this is applicable for llama-stack repo but we should not do it when
       # LLAMA_STACK_ONLY is true
       perl -pi -e "s/llama-stack-client>=.*/llama-stack-client>=$VERSION\",/" pyproject.toml
     fi
 
-    uv build -q
-    uv pip install dist/*.whl
+    if [ "$repo" == "stack-client-typescript" ]; then
+      npx yarn build
+      npx yarn install
+    else
+      uv build -q
+      uv pip install dist/*.whl
+    fi
 
     git commit -am "Release candidate $VERSION"
     cd ..
