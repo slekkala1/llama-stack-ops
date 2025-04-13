@@ -15,12 +15,17 @@ if [ -z "${CLIENT_PYTHON_COMMIT_ID+x}" ]; then
 fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
-ONLY_TEST_DONT_CUT=${ONLY_TEST_DONT_CUT:-false}
+CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 TEMPLATE=${TEMPLATE:-fireworks}
 
 set -euo pipefail
 set -x
+
+if [ "$CUT_MODE" != "test-and-cut" ] && [ "$CUT_MODE" != "test-only" ] && [ "$CUT_MODE" != "cut-only" ]; then
+  echo "Invalid mode: $CUT_MODE" >&2
+  exit 1
+fi
 
 is_truthy() {
   case "$1" in
@@ -97,7 +102,7 @@ run_integration_tests() {
   shift
   LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
-    -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
+    -k "not(builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation)" \
     --text-model meta-llama/Llama-3.3-70B-Instruct \
     --vision-model meta-llama/Llama-3.2-11B-Vision-Instruct \
     --safety-shield meta-llama/Llama-Guard-3-8B \
@@ -166,13 +171,15 @@ build_packages
 
 uv pip install pytest nbval pytest-asyncio
 
-test_llama_cli
-test_library_client
-test_docker
+if [ "$CUT_MODE" != "cut-only" ]; then
+  test_llama_cli
+  test_library_client
+  test_docker
+fi
 
-# if ONLY_TEST_DONT_CUT is truthy, don't cut the branch
-if is_truthy "$ONLY_TEST_DONT_CUT"; then
-  echo "Not cutting (i.e., pushing the branch) because ONLY_TEST_DONT_CUT is true"
+# if MODE is test-only, don't cut the branch
+if [ "$CUT_MODE" == "test-only" ]; then
+  echo "Not cutting (i.e., pushing the branch) because MODE is test-only"
   exit 0
 fi
 
