@@ -99,7 +99,7 @@ build_packages() {
 
 test_llama_cli() {
   uv pip list | grep llama
-  llama model prompt-format -m Llama3.2-11B-Vision-Instruct
+  llama model prompt-format -m Llama3.2-90B-Vision-Instruct
   llama model list
   llama stack list-apis
   llama stack list-providers inference
@@ -113,7 +113,7 @@ run_integration_tests() {
     --stack-config $stack_config \
     -k "not(builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation)" \
     --text-model meta-llama/Llama-3.3-70B-Instruct \
-    --vision-model meta-llama/Llama-3.2-11B-Vision-Instruct \
+    --vision-model meta-llama/Llama-3.2-90B-Vision-Instruct \
     --safety-shield meta-llama/Llama-Guard-3-8B \
     --embedding-model all-MiniLM-L6-v2
 }

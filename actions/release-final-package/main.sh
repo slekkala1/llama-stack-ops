@@ -126,7 +126,7 @@ for repo in "${REPOS[@]}"; do
 done
 
 which llama
-llama model prompt-format -m Llama3.2-11B-Vision-Instruct
+llama model prompt-format -m Llama3.2-90B-Vision-Instruct
 llama model list
 llama stack list-apis
 llama stack list-providers inference

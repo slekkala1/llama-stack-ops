@@ -43,7 +43,7 @@ while [ $attempt -le $max_attempts ]; do
 done
 
 uv pip list | grep llama
-llama model prompt-format -m Llama3.2-11B-Vision-Instruct
+llama model prompt-format -m Llama3.2-90B-Vision-Instruct
 llama model list
 llama stack list-apis
 llama stack list-providers inference
@@ -76,7 +76,7 @@ LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -s -v tests/integration/ \
   --stack-config $TEMPLATE \
   -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
   --text-model meta-llama/Llama-3.3-70B-Instruct \
-  --vision-model meta-llama/Llama-3.2-11B-Vision-Instruct \
+  --vision-model meta-llama/Llama-3.2-90B-Vision-Instruct \
   --safety-shield meta-llama/Llama-Guard-3-8B \
   --embedding-model all-MiniLM-L6-v2
 
