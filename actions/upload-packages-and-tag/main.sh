@@ -48,8 +48,8 @@ for repo in "${REPOS[@]}"; do
     NPM_VERSION=$(cat package.json | jq -r '.version')
     echo "version to build: $NPM_VERSION"
 
-    npx yarn build
     npx yarn install
+    npx yarn build
   else
     PYPROJECT_VERSION=$(cat pyproject.toml | grep version)
     echo "version to build: $PYPROJECT_VERSION"

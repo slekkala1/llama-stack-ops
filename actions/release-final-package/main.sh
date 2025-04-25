@@ -71,6 +71,7 @@ add_bump_version_commit() {
 
   if [ "$repo" == "stack-client-typescript" ]; then
     perl -pi -e "s/\"version\": \".*\"/\"version\": \"$version\"/" package.json
+    npx yarn install
     npx yarn build
   else
     # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
@@ -115,8 +116,8 @@ for repo in "${REPOS[@]}"; do
   git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
 
   if [ "$repo" == "stack-client-typescript" ]; then
-    npx yarn build
     npx yarn install
+    npx yarn build
   else
     uv build -q
     uv pip install dist/*.whl
