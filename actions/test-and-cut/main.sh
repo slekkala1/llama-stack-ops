@@ -85,8 +85,8 @@ build_packages() {
     fi
 
     if [ "$repo" == "stack-client-typescript" ]; then
-      npx yarn build
       npx yarn install
+      npx yarn build
     else
       uv build -q
       uv pip install dist/*.whl
