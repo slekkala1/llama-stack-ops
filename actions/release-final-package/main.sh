@@ -141,10 +141,11 @@ fi
 
 for repo in "${REPOS[@]}"; do
   cd llama-$repo
-  echo "Uploading llama-$repo to pypi"
   if [ "$repo" == "stack-client-typescript" ]; then
-    npx yarn publish --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
+    echo "Uploading llama-$repo to npm"
+    cd dist && npx yarn publish --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
   else
+    echo "Uploading llama-$repo to pypi"
     python -m twine upload \
       --skip-existing \
       --non-interactive \
