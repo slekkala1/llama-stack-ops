@@ -28,7 +28,7 @@ runs:
       with:
         python-version: '3.10'
         enable-cache: false
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
         node-version: '20'
         registry-url: 'https://registry.npmjs.org'
