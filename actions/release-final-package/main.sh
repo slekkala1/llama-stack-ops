@@ -158,6 +158,7 @@ for repo in "${REPOS[@]}"; do
       --non-interactive \
       "dist/*.whl" "dist/*.tar.gz"
   fi
+  cd ..
 done
 
 deactivate
@@ -189,6 +190,8 @@ for repo in "${REPOS[@]}"; do
   if [ "$repo" != "stack-client-typescript" ]; then
     deactivate
   fi
+
+  cd ..
 done
 
 echo "Done"
