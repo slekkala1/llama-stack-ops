@@ -10,9 +10,16 @@ if [ -z "$RC_VERSION" ]; then
   exit 1
 fi
 
+if [ -z "$NPM_TOKEN" ]; then
+  echo "You must set the NPM_TOKEN environment variable" >&2
+  exit 1
+fi
+
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 DRY_RUN=${DRY_RUN:-false}
+
+npm config set '//registry.npmjs.org/:_authToken' "$NPM_TOKEN"
 
 set -euo pipefail
 
@@ -143,7 +150,7 @@ for repo in "${REPOS[@]}"; do
   cd llama-$repo
   if [ "$repo" == "stack-client-typescript" ]; then
     echo "Uploading llama-$repo to npm"
-    cd dist && npx yarn publish --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
+    cd dist && npx yarn publish --access public --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
   else
     echo "Uploading llama-$repo to pypi"
     python -m twine upload \

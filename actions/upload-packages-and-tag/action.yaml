@@ -10,6 +10,9 @@ inputs:
     description: 'Only upload packages for llama-stack (default: false)'
     required: false
     default: 'false'
+  npm_token:
+    description: 'NPM token'
+    required: true
 
 runs:
   using: 'composite'
@@ -38,6 +41,7 @@ runs:
         VERSION: ${{ inputs.version }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         LLAMA_STACK_ONLY: ${{ inputs.llama_stack_only }}
+        NPM_TOKEN: ${{ inputs.npm_token }}
       run: |
         chmod +x ${{ github.action_path }}/main.sh
         ${{ github.action_path }}/main.sh
