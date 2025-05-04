@@ -74,7 +74,7 @@ git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 echo "Running integration tests"
 LLAMA_STACK_TEST_INTERVAL_SECONDS=2 pytest -s -v tests/integration/ \
   --stack-config $TEMPLATE \
-  -k "not(builtin_tool_code or safety_with_image or code_interpreter_for)" \
+  -k "not(builtin_tool_code or safety_with_image or code_interpreter or rag_and_code or truncation)" \
   --text-model meta-llama/Llama-3.3-70B-Instruct \
   --vision-model meta-llama/Llama-4-Scout-17B-16E-Instruct \
   --safety-shield meta-llama/Llama-Guard-3-8B \

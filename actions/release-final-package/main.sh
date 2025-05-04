@@ -166,6 +166,7 @@ for repo in "${REPOS[@]}"; do
     echo "Uploading llama-$repo to npm"
     cd dist
     npx yarn publish --access public --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
+    npx yarn tag add llama-stack-client@$RELEASE_VERSION latest || true
     cd ..
   else
     echo "Uploading llama-$repo to pypi"
