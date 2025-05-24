@@ -124,8 +124,7 @@ test_library_client() {
   echo "#!/bin/bash" >$SCRIPT_FILE
   echo "set -x" >>$SCRIPT_FILE
   echo "set -euo pipefail" >>$SCRIPT_FILE
-  llama stack build --template $TEMPLATE --print-deps-only >>$SCRIPT_FILE
-
+  llama stack build --template $TEMPLATE --print-deps-only --image-type venv >>$SCRIPT_FILE
   echo "Running script $SCRIPT_FILE"
   bash $SCRIPT_FILE
 
