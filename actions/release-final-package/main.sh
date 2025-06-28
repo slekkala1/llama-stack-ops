@@ -19,6 +19,8 @@ GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 DRY_RUN=${DRY_RUN:-false}
 
+source $(dirname $0)/../common.sh
+
 npm config set '//registry.npmjs.org/:_authToken' "$NPM_TOKEN"
 
 set -euo pipefail
@@ -62,7 +64,8 @@ fi
 # check that tag v$RC_VERSION exists for all repos. each repo is remote
 # github.com/meta-llama/llama-$repo.git
 for repo in "${REPOS[@]}"; do
-  if ! git ls-remote --tags https://github.com/meta-llama/llama-$repo.git "refs/tags/v$RC_VERSION" | grep -q .; then
+  org=$(github_org $repo)
+  if ! git ls-remote --tags https://github.com/$org/llama-$repo.git "refs/tags/v$RC_VERSION" | grep -q .; then
     echo "Tag v$RC_VERSION does not exist for $repo" >&2
     exit 1
   fi
@@ -129,7 +132,8 @@ uv pip install twine
 npm install -g yarn
 
 for repo in "${REPOS[@]}"; do
-  git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
+  org=$(github_org $repo)
+  git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git"
   cd llama-$repo
   git fetch origin refs/tags/v${RC_VERSION}:refs/tags/v${RC_VERSION}
   git checkout -b release-$RELEASE_VERSION refs/tags/v${RC_VERSION}
@@ -196,8 +200,9 @@ for repo in "${REPOS[@]}"; do
 
   # push the new commit to main and push the tag
   echo "Pushing branch and tag v$RELEASE_VERSION for $repo"
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "release-$RELEASE_VERSION"
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "v$RELEASE_VERSION"
+  org=$(github_org $repo)
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "release-$RELEASE_VERSION"
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "v$RELEASE_VERSION"
 
   if ! is_truthy "$LLAMA_STACK_ONLY"; then
     # this is fishy because the rebase is not guaranteed to work. even the conditional above is
@@ -205,7 +210,7 @@ for repo in "${REPOS[@]}"; do
     # bugfix release but that's not guaranteed to be true in the future.
     git checkout main
     add_bump_version_commit $repo $RELEASE_VERSION true
-    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "main"
+    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "main"
   fi
 
   if [ "$repo" != "stack-client-typescript" ]; then

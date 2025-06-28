@@ -19,6 +19,8 @@ CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 TEMPLATE=${TEMPLATE:-fireworks}
 
+source $(dirname $0)/../common.sh
+
 set -euo pipefail
 set -x
 
@@ -50,8 +52,9 @@ build_packages() {
     REPOS=(stack)
   fi
 
-  for repo in "${REPOS[@]}"; do
-    git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
+  for repo in "${REPOS[@]}"; do    
+    org=$(github_org $repo)
+    git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git"
     cd llama-$repo
 
     if [ "$repo" == "stack" ] && [ -n "$COMMIT_ID" ]; then
@@ -194,7 +197,8 @@ fi
 for repo in "${REPOS[@]}"; do
   echo "Pushing branch rc-$VERSION for llama-$repo"
   cd llama-$repo
-  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "rc-$VERSION"
+  org=$(github_org $repo)
+  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "rc-$VERSION"
   cd ..
 
 done
