@@ -15,6 +15,8 @@ LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 
 TEMPLATE=fireworks
 
+source $(dirname $0)/../common.sh
+
 set -euo pipefail
 set -x
 
@@ -44,7 +46,8 @@ if is_truthy "$LLAMA_STACK_ONLY"; then
 fi
 
 for repo in "${REPOS[@]}"; do
-  git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git"
+  org=$(github_org $repo)
+  git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git"
   cd llama-$repo
 
   echo "Building package..."
@@ -84,7 +87,7 @@ for repo in "${REPOS[@]}"; do
   fi
 
   echo "Pushing tag for llama-$repo"
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/meta-llama/llama-$repo.git" "v$VERSION"
+  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "v$VERSION"
 
   cd ..
 done
