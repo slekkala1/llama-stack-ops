@@ -208,6 +208,7 @@ for repo in "${REPOS[@]}"; do
     # this is fishy because the rebase is not guaranteed to work. even the conditional above is
     # not quite correct because currently the idea is the LLAMA_STACK_ONLY=1 is set when this is a
     # bugfix release but that's not guaranteed to be true in the future.
+    git fetch origin main
     git checkout main
     add_bump_version_commit $repo $RELEASE_VERSION true
     git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "main"
