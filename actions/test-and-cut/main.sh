@@ -17,7 +17,7 @@ fi
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
-TEMPLATE=${TEMPLATE:-fireworks}
+TEMPLATE=${TEMPLATE:-starter}
 
 source $(dirname $0)/../common.sh
 
@@ -152,6 +152,8 @@ test_docker() {
   # run the container in the background
   export LLAMA_STACK_PORT=8321
   docker run -d --name llama-stack-$TEMPLATE -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
+    -e ENABLE_FIREWORKS=fireworks \
+    -e ENABLE_TOGETHER=together \
     -e TOGETHER_API_KEY=$TOGETHER_API_KEY \
     -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
     -e TAVILY_SEARCH_API_KEY=$TAVILY_SEARCH_API_KEY \
