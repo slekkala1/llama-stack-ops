@@ -24,7 +24,7 @@ on:
         description: 'Template to use for the release candidate'
         required: false
         type: string
-        default: 'fireworks'
+        default: 'starter'
   schedule:
     - cron: "0 0 * * *"  # Run every day at midnight
 
