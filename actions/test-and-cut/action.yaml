@@ -19,7 +19,7 @@ inputs:
   template:
     description: '--stack-config for testing'
     required: false
-    default: 'fireworks'
+    default: 'starter'
   llama_stack_only:
     description: 'Only cut a llama-stack release candidate'
     required: false
