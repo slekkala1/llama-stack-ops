@@ -72,6 +72,7 @@ jobs:
         commit_id: ${{ steps.inputs.outputs.commit_id }}
         client_python_commit_id: ${{ steps.inputs.outputs.client_python_commit_id }}
         template: ${{ inputs.template }}
+        inference_provider: ${{ inputs.inference_provider }}
         cut_mode: ${{ steps.version.outputs.cut_mode }}
         fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
         together_api_key: ${{ secrets.TOGETHER_API_KEY }}

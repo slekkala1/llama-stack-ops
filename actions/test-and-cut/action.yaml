@@ -23,7 +23,7 @@ inputs:
   inference_provider:
     description: "Inference provider to use for testing"
     required: false
-    default: "fireworks"
+    default: 'fireworks'
   llama_stack_only:
     description: 'Only cut a llama-stack release candidate'
     required: false
