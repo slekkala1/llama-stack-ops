@@ -25,6 +25,11 @@ on:
         required: false
         type: string
         default: 'starter'
+      inference_provider:
+        description: 'Inference provider to use for testing'
+        required: false
+        type: string
+        default: 'fireworks'
   schedule:
     - cron: "0 0 * * *"  # Run every day at midnight
 
