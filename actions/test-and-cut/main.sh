@@ -18,6 +18,7 @@ GITHUB_TOKEN=${GITHUB_TOKEN:-}
 CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 TEMPLATE=${TEMPLATE:-starter}
+INFERENCE_PROVIDER=${INFERENCE_PROVIDER:-fireworks}
 
 source $(dirname $0)/../common.sh
 
@@ -115,9 +116,9 @@ run_integration_tests() {
   ENABLE_FIREWORKS=fireworks ENABLE_TOGETHER=together LLAMA_STACK_TEST_INTERVAL_SECONDS=3 pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
     -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister)" \
-    --text-model meta-llama/Llama-3.3-70B-Instruct \
-    --vision-model meta-llama/Llama-4-Scout-17B-16E-Instruct \
-    --safety-shield meta-llama/Llama-Guard-3-8B \
+    --text-model $INFERENCE_PROVIDER/meta-llama/Llama-3.3-70B-Instruct \
+    --vision-model $INFERENCE_PROVIDER/meta-llama/Llama-4-Scout-17B-16E-Instruct \
+    --safety-shield $INFERENCE_PROVIDER/meta-llama/Llama-Guard-3-8B \
     --embedding-model all-MiniLM-L6-v2
 }
 
