@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       commit_id:
-        description: 'Commit ID'
+        description: 'llama-stack commit ID'
         required: true
       client_python_commit_id:
         description: 'llama-stack-client-python commit ID'
