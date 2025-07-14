@@ -160,6 +160,7 @@ test_docker() {
     -e ENABLE_FIREWORKS=fireworks \
     -e ENABLE_TOGETHER=together \
     -e ENABLE_OLLAMA=ollama \
+    -e OLLAMA_URL=http://host.docker.internal:11434
     -e SAFETY_MODEL=$SAFETY_MODEL \
     -e TOGETHER_API_KEY=$TOGETHER_API_KEY \
     -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
