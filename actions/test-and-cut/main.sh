@@ -156,11 +156,11 @@ test_docker() {
 
   # run the container in the background
   export LLAMA_STACK_PORT=8321
-  docker run -d --name llama-stack-$TEMPLATE -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
+  docker run -d --network host --name llama-stack-$TEMPLATE -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
     -e ENABLE_FIREWORKS=fireworks \
     -e ENABLE_TOGETHER=together \
     -e ENABLE_OLLAMA=ollama \
-    -e OLLAMA_URL=http://host.docker.internal:11434 \
+    -e OLLAMA_URL=http://localhost:11434 \
     -e SAFETY_MODEL=$SAFETY_MODEL \
     -e TOGETHER_API_KEY=$TOGETHER_API_KEY \
     -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
