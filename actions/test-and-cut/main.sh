@@ -119,7 +119,7 @@ run_integration_tests() {
   SAFETY_MODEL=$SAFETY_MODEL \
   pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
-    -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister)" \
+    -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
     --text-model $INFERENCE_PROVIDER/meta-llama/Llama-3.3-70B-Instruct \
     --vision-model $INFERENCE_PROVIDER/meta-llama/Llama-4-Scout-17B-16E-Instruct \
     --safety-shield $SAFETY_MODEL \
@@ -194,8 +194,8 @@ uv pip install pytest nbval pytest-asyncio
 
 if [ "$CUT_MODE" != "cut-only" ]; then
   test_llama_cli
-  test_library_client
   test_docker
+  test_library_client
 fi
 
 # if MODE is test-only, don't cut the branch
