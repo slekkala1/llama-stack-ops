@@ -194,8 +194,8 @@ uv pip install pytest nbval pytest-asyncio
 
 if [ "$CUT_MODE" != "cut-only" ]; then
   test_llama_cli
-  test_docker
   test_library_client
+  test_docker
 fi
 
 # if MODE is test-only, don't cut the branch
