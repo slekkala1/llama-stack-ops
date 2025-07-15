@@ -17,7 +17,6 @@ fi
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
-TEMPLATE=${TEMPLATE:-starter}
 INFERENCE_PROVIDER=${INFERENCE_PROVIDER:-fireworks}
 SAFETY_MODEL=${SAFETY_MODEL:-llama-guard3:1b}
 
@@ -38,6 +37,10 @@ is_truthy() {
   *) return 1 ;;
   esac
 }
+
+TEMPLATE=starter
+
+setup_ollama
 
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
@@ -102,30 +105,6 @@ build_packages() {
   done
 }
 
-test_llama_cli() {
-  uv pip list | grep llama
-  llama model prompt-format -m Llama3.2-90B-Vision-Instruct
-  llama model list
-  llama stack list-apis
-  llama stack list-providers inference
-  llama stack list-providers telemetry
-}
-
-run_integration_tests() {
-  stack_config=$1
-  shift
-  ENABLE_OLLAMA=ollama ENABLE_FIREWORKS=fireworks ENABLE_TOGETHER=together \
-  LLAMA_STACK_TEST_INTERVAL_SECONDS=3 \
-  SAFETY_MODEL=$SAFETY_MODEL \
-  pytest -s -v llama-stack/tests/integration/ \
-    --stack-config $stack_config \
-    -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
-    --text-model $INFERENCE_PROVIDER/meta-llama/Llama-3.3-70B-Instruct \
-    --vision-model $INFERENCE_PROVIDER/meta-llama/Llama-4-Scout-17B-16E-Instruct \
-    --safety-shield $SAFETY_MODEL \
-    --embedding-model all-MiniLM-L6-v2
-}
-
 test_library_client() {
   echo "Building template"
   SCRIPT_FILE=$(mktemp)
@@ -137,7 +116,7 @@ test_library_client() {
   bash $SCRIPT_FILE
 
   echo "Running integration tests before uploading"
-  run_integration_tests $TEMPLATE
+  run_integration_tests $TEMPLATE $INFERENCE_PROVIDER $SAFETY_MODEL
 }
 
 test_docker() {
@@ -182,7 +161,7 @@ test_docker() {
     fi
   done
 
-  run_integration_tests http://localhost:$LLAMA_STACK_PORT
+  run_integration_tests http://localhost:$LLAMA_STACK_PORT $INFERENCE_PROVIDER $SAFETY_MODEL
 
   # stop the container
   docker stop llama-stack-$TEMPLATE
