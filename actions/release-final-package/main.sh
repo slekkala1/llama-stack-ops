@@ -33,11 +33,10 @@ is_truthy() {
   esac
 }
 
-# Yell if RELEASE is already on pypi
+# Yell loudly if RELEASE is already on pypi, but keep going anyway
 version_tag=$(curl -s https://pypi.org/pypi/llama-stack/json | jq -r '.info.version')
 if [ x"$version_tag" = x"$RELEASE_VERSION" ]; then
-  echo "RELEASE_VERSION $RELEASE_VERSION is already on pypi" >&2
-  exit 1
+  echo "WARNING: RELEASE_VERSION $RELEASE_VERSION is already on pypi" >&2
 fi
 
 # OTOH, if the RC is _not_ on test.pypi, we should yell
@@ -91,7 +90,7 @@ add_bump_version_commit() {
       perl -pi -e "s/llama-stack-client>=.*,/llama-stack-client>=$RELEASE_VERSION\",/" pyproject.toml
 
       if [ "$repo" == "stack" ]; then
-        sed -i -E 's/("llama-stack-client": ")[^"]+"/\1'"$RELEASE_VERSION"'"/' llama_stack/ui/package.json
+        perl -pi -e "s/(\"llama-stack-client\": \")[^\"]+\"/\1\"$RELEASE_VERSION\"/" llama_stack/ui/package.json
       fi
 
       if [ -f "src/llama_stack_client/_version.py" ]; then
@@ -118,9 +117,15 @@ add_bump_version_commit() {
     fi
 
     uv export --frozen --no-hashes --no-emit-project --no-default-groups --output-file=requirements.txt
+    git add requirements.txt
   fi
 
-  git commit -am "build: Bump version to $version"
+  # Only commit if there are changes
+  if [ -n "$(git status --porcelain)" ]; then
+    git commit -am "build: Bump version to $version"
+  else
+    echo "No changes to commit for version bump to $version"
+  fi
 }
 
 TMPDIR=$(mktemp -d)
@@ -133,7 +138,7 @@ npm install -g yarn
 
 for repo in "${REPOS[@]}"; do
   org=$(github_org $repo)
-  git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git"
+  git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git"
   cd llama-$repo
   git fetch origin refs/tags/v${RC_VERSION}:refs/tags/v${RC_VERSION}
   git checkout -b release-$RELEASE_VERSION refs/tags/v${RC_VERSION}
@@ -141,7 +146,12 @@ for repo in "${REPOS[@]}"; do
   # don't run uv lock here because the dependency isn't pushed upstream so uv will fail
   add_bump_version_commit $repo $RELEASE_VERSION false
 
-  git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
+  # Only create the tag if it doesn't already exist
+  if ! git tag -l "v$RELEASE_VERSION" | grep -q .; then
+    git tag -a "v$RELEASE_VERSION" -m "Release version $RELEASE_VERSION"
+  else
+    echo "Tag v$RELEASE_VERSION already exists, skipping tag creation"
+  fi
 
   if [ "$repo" == "stack-client-typescript" ]; then
     npx yarn install
@@ -173,7 +183,15 @@ for repo in "${REPOS[@]}"; do
   if [ "$repo" == "stack-client-typescript" ]; then
     echo "Uploading llama-$repo to npm"
     cd dist
-    npx yarn publish --access public --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
+
+    # Check if version already exists on npm
+    if npm view llama-stack-client@$RELEASE_VERSION version &>/dev/null; then
+      echo "Version $RELEASE_VERSION already exists on npm for llama-stack-client, skipping publish"
+    else
+      npx yarn publish --access public --tag $RELEASE_VERSION --registry https://registry.npmjs.org/
+    fi
+
+    # Always try to add latest tag since this operation is idempotent
     npx yarn tag add llama-stack-client@$RELEASE_VERSION latest || true
     cd ..
   else
@@ -201,15 +219,14 @@ for repo in "${REPOS[@]}"; do
   # push the new commit to main and push the tag
   echo "Pushing branch and tag v$RELEASE_VERSION for $repo"
   org=$(github_org $repo)
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "release-$RELEASE_VERSION"
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "v$RELEASE_VERSION"
+  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "release-$RELEASE_VERSION"
+  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "v$RELEASE_VERSION"
 
   if ! is_truthy "$LLAMA_STACK_ONLY"; then
     # this is fishy because the rebase is not guaranteed to work. even the conditional above is
     # not quite correct because currently the idea is the LLAMA_STACK_ONLY=1 is set when this is a
     # bugfix release but that's not guaranteed to be true in the future.
-    git fetch origin main
-    git checkout -b main origin/main
+    git checkout main
     add_bump_version_commit $repo $RELEASE_VERSION true
     git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "main"
   fi
