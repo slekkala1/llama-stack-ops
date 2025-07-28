@@ -30,7 +30,7 @@ run_integration_tests() {
     --text-model $model \
     --vision-model $model \
     --safety-shield $safety_model \
-    --embedding-model all-MiniLM-L6-v2
+    --embedding-model sentence-transformers/all-MiniLM-L6-v2
 }
 
 test_llama_cli() {
