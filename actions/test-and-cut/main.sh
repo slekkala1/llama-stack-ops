@@ -18,7 +18,7 @@ GITHUB_TOKEN=${GITHUB_TOKEN:-}
 CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 INFERENCE_PROVIDER=${INFERENCE_PROVIDER:-fireworks}
-SAFETY_MODEL=${SAFETY_MODEL:-llama-guard3:1b}
+SAFETY_MODEL=${SAFETY_MODEL:-ollama/llama-guard3:1b}
 
 source $(dirname $0)/../common.sh
 

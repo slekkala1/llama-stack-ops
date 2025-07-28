@@ -6,7 +6,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 INFERENCE_PROVIDER=${INFERENCE_PROVIDER:-fireworks}
-SAFETY_MODEL=${SAFETY_MODEL:-llama-guard3:1b}
+SAFETY_MODEL=${SAFETY_MODEL:-ollama/llama-guard3:1b}
 
 source $(dirname $0)/../common.sh
 

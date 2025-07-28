@@ -23,13 +23,14 @@ run_integration_tests() {
   fi
 
   SAFETY_MODEL=$safety_model \
+  OLLAMA_URL=http://localhost:11434 \
   LLAMA_STACK_TEST_INTERVAL_SECONDS=3 \
   pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
     -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
     --text-model $model \
     --vision-model $model \
-    --safety-shield $safety_model \
+    --safety-shield llama-guard \
     --embedding-model sentence-transformers/all-MiniLM-L6-v2
 }
 
