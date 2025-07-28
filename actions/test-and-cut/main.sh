@@ -57,7 +57,7 @@ build_packages() {
     REPOS=(stack)
   fi
 
-  for repo in "${REPOS[@]}"; do    
+  for repo in "${REPOS[@]}"; do
     org=$(github_org $repo)
     git clone --depth 10 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git"
     cd llama-$repo
@@ -136,9 +136,6 @@ test_docker() {
   # run the container in the background
   export LLAMA_STACK_PORT=8321
   docker run -d --network host --name llama-stack-$TEMPLATE -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
-    -e ENABLE_FIREWORKS=fireworks \
-    -e ENABLE_TOGETHER=together \
-    -e ENABLE_OLLAMA=ollama \
     -e OLLAMA_URL=http://localhost:11434 \
     -e SAFETY_MODEL=$SAFETY_MODEL \
     -e TOGETHER_API_KEY=$TOGETHER_API_KEY \

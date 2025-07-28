@@ -12,16 +12,23 @@ run_integration_tests() {
   inference_provider=$2
   safety_model=$3
 
-  ENABLE_OLLAMA=ollama \
-  ENABLE_FIREWORKS=fireworks \
-  ENABLE_TOGETHER=together \
+  if [ "$inference_provider" == "together" ]; then
+    model="together/meta-llama/Llama-4-Scout-17B-16E-Instruct"
+  elif [ "$inference_provider" == "fireworks" ]; then
+    model="fireworks/accounts/fireworks/models/llama4-scout-instruct-basic"
+  else
+    # not supported
+    echo "Inference provider $inference_provider not supported"
+    exit 1
+  fi
+
   SAFETY_MODEL=$safety_model \
   LLAMA_STACK_TEST_INTERVAL_SECONDS=3 \
   pytest -s -v llama-stack/tests/integration/ \
     --stack-config $stack_config \
     -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
-    --text-model $inference_provider/meta-llama/Llama-3.3-70B-Instruct \
-    --vision-model $inference_provider/meta-llama/Llama-4-Scout-17B-16E-Instruct \
+    --text-model $model \
+    --vision-model $model \
     --safety-shield $safety_model \
     --embedding-model all-MiniLM-L6-v2
 }
