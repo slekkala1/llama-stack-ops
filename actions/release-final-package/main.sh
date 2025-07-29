@@ -115,9 +115,6 @@ add_bump_version_commit() {
         fi
       done
     fi
-
-    uv export --frozen --no-hashes --no-emit-project --no-default-groups --output-file=requirements.txt
-    git add requirements.txt
   fi
 
   # Only commit if there are changes
