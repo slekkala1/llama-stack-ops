@@ -49,7 +49,7 @@ run_integration_tests() {
 }
 
 install_dependencies() {
-  uv pip install pytest nbval pytest-asyncio reportlab pypdf mcp
+  uv pip install pytest nbval pytest-asyncio reportlab pypdf mcp pyarrow>=21.0.0
 }
 
 test_llama_cli() {
