@@ -15,7 +15,21 @@ run_integration_tests() {
   export SAFETY_MODEL="ollama/llama-guard3:1b"
   export OLLAMA_URL=http://localhost:11434
 
-  pytest -s -v llama-stack/tests/integration/ \
+  TEST_TYPES=$(find llama-stack/tests/integration -maxdepth 1 -mindepth 1 -type d -printf "%f\n" |
+    grep -Ev "^(__pycache__|fixtures|test_cases|recordings|post_training)$" | sort)
+  TEST_FILES=""
+  for test_type in $TEST_TYPES; do
+    test_files=$(find llama-stack/tests/integration/$test_type -name "test_*.py" -o -name "*_test.py")
+    if [ -n "$test_files" ]; then
+      TEST_FILES="$TEST_FILES $test_files"
+      echo "Added test files from $test_type: $(echo $test_files | wc -w) files"
+    fi
+  done
+
+  echo "Running tests: $TEST_FILES"
+  echo "Total test files: $(echo $TEST_FILES | wc -w)"
+
+  pytest -s -v $TEST_FILES \
       --stack-config $stack_config \
       -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
       --text-model ollama/llama3.2:3b-instruct-fp16 \
@@ -27,7 +41,7 @@ run_integration_tests() {
   # set to a different directory. this is annoying.
   if [[ $stack_config != *"localhost"* ]]; then
     export LLAMA_STACK_TEST_RECORDING_DIR=llama-stack/tests/integration/recordings/vision
-    pytest -s -v tests/integration/inference/test_vision_inference.py \
+    pytest -s -v llama-stack/tests/integration/inference/test_vision_inference.py \
       --stack-config $stack_config \
         --vision-model=ollama/llama3.2-vision:11b \
         --embedding-model=sentence-transformers/all-MiniLM-L6-v2
