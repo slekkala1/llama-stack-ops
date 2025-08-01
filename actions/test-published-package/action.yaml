@@ -28,10 +28,6 @@ runs:
       with:
         python-version: '3.12'
         enable-cache: false
-    - name: Install dependencies
-      shell: bash
-      run: |
-        sudo apt-get install -y bubblewrap
 
     - name: Test package
       shell: bash
