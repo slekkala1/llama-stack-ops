@@ -69,7 +69,6 @@ cd llama-stack
 
 git fetch origin refs/tags/v${VERSION}:refs/tags/v${VERSION}
 git checkout -b cut-${VERSION} refs/tags/v${VERSION}
-uv sync --all-groups
 
 cd ..
 echo "Running integration tests"
