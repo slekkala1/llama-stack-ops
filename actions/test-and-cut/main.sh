@@ -165,7 +165,7 @@ test_docker() {
 
 build_packages
 
-uv pip install pytest nbval pytest-asyncio
+install_dependencies
 
 if [ "$CUT_MODE" != "cut-only" ]; then
   test_llama_cli

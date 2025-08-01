@@ -34,6 +34,10 @@ run_integration_tests() {
   fi
 }
 
+install_dependencies() {
+  uv pip install pytest nbval pytest-asyncio reportlab pypdf mcp
+}
+
 test_llama_cli() {
   uv pip list | grep llama
   llama model prompt-format -m Llama3.2-90B-Vision-Instruct

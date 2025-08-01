@@ -62,7 +62,7 @@ for build_template in "${templates_to_build[@]}"; do
   bash $SCRIPT_FILE
 done
 
-uv pip install pytest nbval pytest-asyncio
+install_dependencies
 
 git clone --depth 1 https://github.com/meta-llama/llama-stack.git
 cd llama-stack
