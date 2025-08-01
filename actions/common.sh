@@ -9,29 +9,29 @@ github_org() {
 
 run_integration_tests() {
   stack_config=$1
-  inference_provider=$2
-  safety_model=$3
 
-  if [ "$inference_provider" == "together" ]; then
-    model="together/meta-llama/Llama-4-Scout-17B-16E-Instruct"
-  elif [ "$inference_provider" == "fireworks" ]; then
-    model="fireworks/accounts/fireworks/models/llama4-scout-instruct-basic"
-  else
-    # not supported
-    echo "Inference provider $inference_provider not supported"
-    exit 1
-  fi
+  export LLAMA_STACK_TEST_INFERENCE_MODE=replay
+  export LLAMA_STACK_TEST_RECORDING_DIR=llama-stack/tests/integration/recordings
+  export SAFETY_MODEL="ollama/llama-guard3:1b"
+  export OLLAMA_URL=http://localhost:11434
 
-  SAFETY_MODEL=$safety_model \
-  OLLAMA_URL=http://localhost:11434 \
-  LLAMA_STACK_TEST_INTERVAL_SECONDS=3 \
   pytest -s -v llama-stack/tests/integration/ \
-    --stack-config $stack_config \
-    -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
-    --text-model $model \
-    --vision-model $model \
-    --safety-shield llama-guard \
-    --embedding-model sentence-transformers/all-MiniLM-L6-v2
+      --stack-config $stack_config \
+      -k "not(supervised_fine_tune or builtin_tool_code or safety_with_image or code_interpreter_for or rag_and_code or truncation or register_and_unregister or register_and_iterrows)" \
+      --text-model ollama/llama3.2:3b-instruct-fp16 \
+      --safety-shield llama-guard \
+      --embedding-model sentence-transformers/all-MiniLM-L6-v2
+
+  # run vision tests only for library client meaning stack-config should not have localhost in it
+  # this is because otherwise we need to run docker again with the LLAMA_STACK_TEST_RECORDING_DIR set to the vision directory
+  # set to a different directory. this is annoying.
+  if [[ $stack_config != *"localhost"* ]]; then
+    export LLAMA_STACK_TEST_RECORDING_DIR=llama-stack/tests/integration/recordings/vision
+    pytest -s -v tests/integration/inference/test_vision_inference.py \
+      --stack-config $stack_config \
+        --vision-model=ollama/llama3.2-vision:11b \
+        --embedding-model=sentence-transformers/all-MiniLM-L6-v2
+  fi
 }
 
 test_llama_cli() {
@@ -44,6 +44,8 @@ test_llama_cli() {
 }
 
 setup_ollama() {
+  echo "WARNING: We should really not be needing to run Ollama!!"
+
   docker run -d --name ollama -p 11434:11434 docker.io/leseb/ollama-with-models
   # TODO: rebuild an ollama image with llama-guard3:1b
   echo "Verifying Ollama status..."

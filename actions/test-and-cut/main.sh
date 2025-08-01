@@ -17,8 +17,6 @@ fi
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 CUT_MODE=${CUT_MODE:-test-and-cut}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
-INFERENCE_PROVIDER=${INFERENCE_PROVIDER:-fireworks}
-SAFETY_MODEL=${SAFETY_MODEL:-ollama/llama-guard3:1b}
 
 source $(dirname $0)/../common.sh
 
@@ -39,8 +37,6 @@ is_truthy() {
 }
 
 TEMPLATE=starter
-
-setup_ollama
 
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
@@ -116,7 +112,7 @@ test_library_client() {
   bash $SCRIPT_FILE
 
   echo "Running integration tests before uploading"
-  run_integration_tests $TEMPLATE $INFERENCE_PROVIDER $SAFETY_MODEL
+  run_integration_tests $TEMPLATE
 }
 
 test_docker() {
@@ -135,9 +131,12 @@ test_docker() {
 
   # run the container in the background
   export LLAMA_STACK_PORT=8321
+
   docker run -d --network host --name llama-stack-$TEMPLATE -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
     -e OLLAMA_URL=http://localhost:11434 \
-    -e SAFETY_MODEL=$SAFETY_MODEL \
+    -e SAFETY_MODEL=ollama/llama-guard3:1b \
+    -e LLAMA_STACK_TEST_INFERENCE_MODE=replay \
+    -e LLAMA_STACK_TEST_RECORDING_DIR=llama-stack/tests/integration/recordings \
     -e TOGETHER_API_KEY=$TOGETHER_API_KEY \
     -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
     -e TAVILY_SEARCH_API_KEY=$TAVILY_SEARCH_API_KEY \
@@ -158,7 +157,7 @@ test_docker() {
     fi
   done
 
-  run_integration_tests http://localhost:$LLAMA_STACK_PORT $INFERENCE_PROVIDER $SAFETY_MODEL
+  run_integration_tests http://localhost:$LLAMA_STACK_PORT
 
   # stop the container
   docker stop llama-stack-$TEMPLATE

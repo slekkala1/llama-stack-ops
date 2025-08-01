@@ -18,8 +18,6 @@ if ! git ls-remote --tags https://github.com/meta-llama/llama-stack.git "refs/ta
   exit 1
 fi
 
-setup_ollama
-
 TEMPLATE=starter
 
 TMPDIR=$(mktemp -d)
@@ -74,7 +72,7 @@ git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 cd ..
 echo "Running integration tests"
-run_integration_tests $TEMPLATE $INFERENCE_PROVIDER $SAFETY_MODEL
+run_integration_tests $TEMPLATE
 
 # Notebook tests use Together
 echo "Running notebook tests"
