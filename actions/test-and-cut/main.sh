@@ -165,7 +165,9 @@ test_docker() {
 
 build_packages
 
-uv pip install pytest nbval pytest-asyncio
+cd llama-stack
+uv sync --all-groups
+cd ..
 
 if [ "$CUT_MODE" != "cut-only" ]; then
   test_llama_cli
