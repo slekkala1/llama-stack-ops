@@ -5,8 +5,8 @@ inputs:
     description: 'Version number (e.g. 0.1.1rc2, 0.1.1.dev20250201)'
     required: true
     type: string
-  templates:
-    description: 'Optional comma-separated templates to publish'
+  distros:
+    description: 'Optional comma-separated distributions to publish'
     required: false
     type: string
   dockerhub_username:
@@ -38,7 +38,7 @@ runs:
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
-        TEMPLATES: ${{ inputs.templates }}
+        DISTROS: ${{ inputs.distros }}
       run: |
         chmod +x ${{ github.action_path }}/main.sh
         ${{ github.action_path }}/main.sh

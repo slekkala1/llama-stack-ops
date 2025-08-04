@@ -13,8 +13,6 @@ fi
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 
-TEMPLATE=fireworks
-
 source $(dirname $0)/../common.sh
 
 set -euo pipefail

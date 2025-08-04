@@ -18,7 +18,7 @@ if ! git ls-remote --tags https://github.com/meta-llama/llama-stack.git "refs/ta
   exit 1
 fi
 
-TEMPLATE=starter
+DISTRO=starter
 
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
@@ -49,14 +49,14 @@ done
 
 test_llama_cli
 
-templates_to_build=("starter")
-for build_template in "${templates_to_build[@]}"; do
-  echo "Building $build_template template"
+distros_to_build=("starter")
+for build_distro in "${distros_to_build[@]}"; do
+  echo "Building $build_distro distribution"
   SCRIPT_FILE=$(mktemp)
   echo "#!/bin/bash" >$SCRIPT_FILE
   echo "set -euo pipefail" >>$SCRIPT_FILE
   echo "set -x" >>$SCRIPT_FILE
-  llama stack build --template $build_template --print-deps-only --image-type venv >>$SCRIPT_FILE
+  llama stack build --distro $build_distro --print-deps-only --image-type venv >>$SCRIPT_FILE
 
   echo "Running script $SCRIPT_FILE"
   bash $SCRIPT_FILE
@@ -72,7 +72,7 @@ git checkout -b cut-${VERSION} refs/tags/v${VERSION}
 
 cd ..
 echo "Running integration tests"
-run_integration_tests $TEMPLATE
+run_integration_tests $DISTRO
 
 # Notebook tests use Together
 echo "Running notebook tests"

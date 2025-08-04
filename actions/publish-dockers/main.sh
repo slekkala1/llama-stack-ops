@@ -4,7 +4,7 @@ if [ -z "$VERSION" ]; then
   echo "You must set the VERSION environment variable" >&2
   exit 1
 fi
-TEMPLATES=${TEMPLATES:-}
+DISTROS=${DISTROS:-}
 
 set -euo pipefail
 
@@ -45,36 +45,36 @@ which llama
 llama stack list-apis
 
 build_and_push_docker() {
-  template=$1
+  distro=$1
 
-  echo "Building and pushing docker for template $template"
+  echo "Building and pushing docker for distro $distro"
   if [ "$PYPI_SOURCE" = "testpypi" ]; then
-    TEST_PYPI_VERSION=${VERSION} llama stack build --template $template --image-type container
+    TEST_PYPI_VERSION=${VERSION} llama stack build --distro $distro --image-type container
   else
-    PYPI_VERSION=${VERSION} llama stack build --template $template --image-type container
+    PYPI_VERSION=${VERSION} llama stack build --distro $distro --image-type container
   fi
   docker images
 
   echo "Pushing docker image"
   if [ "$PYPI_SOURCE" = "testpypi" ]; then
-    docker tag distribution-$template:test-${VERSION} llamastack/distribution-$template:test-${VERSION}
-    docker push llamastack/distribution-$template:test-${VERSION}
+    docker tag distribution-$distro:test-${VERSION} llamastack/distribution-$distro:test-${VERSION}
+    docker push llamastack/distribution-$distro:test-${VERSION}
   else
-    docker tag distribution-$template:${VERSION} llamastack/distribution-$template:${VERSION}
-    docker tag distribution-$template:${VERSION} llamastack/distribution-$template:latest
-    docker push llamastack/distribution-$template:${VERSION}
-    docker push llamastack/distribution-$template:latest
+    docker tag distribution-$distro:${VERSION} llamastack/distribution-$distro:${VERSION}
+    docker tag distribution-$distro:${VERSION} llamastack/distribution-$distro:latest
+    docker push llamastack/distribution-$distro:${VERSION}
+    docker push llamastack/distribution-$distro:latest
   fi
 }
 
-if [ -z "$TEMPLATES" ]; then
-  TEMPLATES=(starter meta-reference-gpu postgres-demo)
+if [ -z "$DISTROS" ]; then
+  DISTROS=(starter meta-reference-gpu postgres-demo dell)
 else
-  TEMPLATES=(${TEMPLATES//,/ })
+  DISTROS=(${DISTROS//,/ })
 fi
 
-for template in "${TEMPLATES[@]}"; do
-  build_and_push_docker $template
+for distro in "${DISTROS[@]}"; do
+  build_and_push_docker $distro
 done
 
 echo "Done"

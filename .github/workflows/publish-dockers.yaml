@@ -7,8 +7,8 @@ on:
         description: 'Version number (e.g. 0.1.1rc2, 0.1.1.dev20250201)'
         required: true
         type: string
-      templates:
-        description: 'Optional comma-separated templates to publish'
+      distros:
+        description: 'Optional comma-separated distributions to publish'
         required: false
         type: string
 
@@ -20,6 +20,6 @@ jobs:
     - uses: ./actions/publish-dockers
       with:
         version: ${{ inputs.version }}
-        templates: ${{ inputs.templates }}
+        distros: ${{ inputs.distros }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}

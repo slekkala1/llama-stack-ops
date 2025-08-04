@@ -36,7 +36,7 @@ is_truthy() {
   esac
 }
 
-TEMPLATE=starter
+DISTRO=starter
 
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
@@ -102,17 +102,17 @@ build_packages() {
 }
 
 test_library_client() {
-  echo "Building template"
+  echo "Building distribution"
   SCRIPT_FILE=$(mktemp)
   echo "#!/bin/bash" >$SCRIPT_FILE
   echo "set -x" >>$SCRIPT_FILE
   echo "set -euo pipefail" >>$SCRIPT_FILE
-  llama stack build --template $TEMPLATE --print-deps-only --image-type venv >>$SCRIPT_FILE
+  llama stack build --distro $DISTRO --print-deps-only --image-type venv >>$SCRIPT_FILE
   echo "Running script $SCRIPT_FILE"
   bash $SCRIPT_FILE
 
   echo "Running integration tests before uploading"
-  run_integration_tests $TEMPLATE
+  run_integration_tests $DISTRO
 }
 
 test_docker() {
@@ -120,11 +120,11 @@ test_docker() {
 
   if is_truthy "$LLAMA_STACK_ONLY"; then
     USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
-      llama stack build --template $TEMPLATE --image-type container
+      llama stack build --distro $DISTRO --image-type container
   else
     USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
       LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
-      llama stack build --template $TEMPLATE --image-type container
+      llama stack build --distro $DISTRO --image-type container
   fi
 
   docker images
@@ -132,7 +132,7 @@ test_docker() {
   # run the container in the background
   export LLAMA_STACK_PORT=8321
 
-  docker run -d --network host --name llama-stack-$TEMPLATE -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
+  docker run -d --network host --name llama-stack-$DISTRO -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
     -e OLLAMA_URL=http://localhost:11434 \
     -e SAFETY_MODEL=ollama/llama-guard3:1b \
     -e LLAMA_STACK_TEST_INFERENCE_MODE=replay \
@@ -141,7 +141,7 @@ test_docker() {
     -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
     -e TAVILY_SEARCH_API_KEY=$TAVILY_SEARCH_API_KEY \
     -v $(pwd)/llama-stack:/app/llama-stack-source \
-    distribution-$TEMPLATE:dev \
+    distribution-$DISTRO:dev \
     --port $LLAMA_STACK_PORT
 
   # check localhost:$LLAMA_STACK_PORT/health repeatedly until it returns 200
@@ -152,7 +152,7 @@ test_docker() {
     iterations=$((iterations + 1))
     if [ $iterations -gt $max_iterations ]; then
       echo "Failed to start the container"
-      docker logs llama-stack-$TEMPLATE
+      docker logs llama-stack-$DISTRO
       exit 1
     fi
   done
@@ -160,7 +160,7 @@ test_docker() {
   run_integration_tests http://localhost:$LLAMA_STACK_PORT
 
   # stop the container
-  docker stop llama-stack-$TEMPLATE
+  docker stop llama-stack-$DISTRO
 }
 
 build_packages
