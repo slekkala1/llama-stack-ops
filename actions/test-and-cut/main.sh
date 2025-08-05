@@ -41,11 +41,10 @@ DISTRO=starter
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
 
-uv venv -p python3.12
+uv venv
 source .venv/bin/activate
 
 build_packages() {
-  uv pip install twine
   npm install -g yarn
 
   REPOS=(stack-client-python stack-client-typescript stack)

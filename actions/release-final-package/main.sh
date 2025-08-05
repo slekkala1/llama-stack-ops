@@ -127,7 +127,7 @@ add_bump_version_commit() {
 
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
-uv venv -p python3.12 build-env
+uv venv build-env
 source build-env/bin/activate
 
 uv pip install twine
