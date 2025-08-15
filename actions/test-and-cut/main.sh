@@ -71,7 +71,8 @@ build_packages() {
       git checkout -b "rc-$VERSION"
     fi
 
-    perl -pi -e "s/version = .*$/version = \"$VERSION\"/" pyproject.toml
+    # TODO: this is dangerous use uvx toml-cli toml set project.version $VERSION instead of this
+    perl -pi -e "s/^version = .*$/version = \"$VERSION\"/" pyproject.toml
 
     if ! is_truthy "$LLAMA_STACK_ONLY"; then
       # this one is only applicable for llama-stack-client-python
