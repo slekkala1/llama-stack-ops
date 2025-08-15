@@ -7,6 +7,8 @@ github_org() {
   fi
 }
 
+# TODO: just using scripts/integration-tests.sh from the llama-stack repo which
+# should have all the logic
 run_integration_tests() {
   stack_config=$1
 
@@ -18,7 +20,7 @@ run_integration_tests() {
   set +x
   TEST_TYPES=$(for dir in llama-stack/tests/integration/*/; do
     [ -d "$dir" ] && basename "$dir"
-  done | grep -Ev '^(__pycache__|fixtures|test_cases|recordings|post_training)$' | sort)
+  done | grep -Ev '^(__pycache__|fixtures|test_cases|recordings|post_training|non_ci|batches)$' | sort)
   TEST_FILES=""
   for test_type in $TEST_TYPES; do
     test_files=$(find llama-stack/tests/integration/$test_type -name "test_*.py" -o -name "*_test.py")
