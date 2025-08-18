@@ -41,7 +41,7 @@ DISTRO=starter
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
 
-uv venv
+uv venv --python 3.12
 source .venv/bin/activate
 
 build_packages() {
@@ -103,13 +103,15 @@ build_packages() {
 
 test_library_client() {
   echo "Building distribution"
-  SCRIPT_FILE=$(mktemp)
-  echo "#!/bin/bash" >$SCRIPT_FILE
-  echo "set -x" >>$SCRIPT_FILE
-  echo "set -euo pipefail" >>$SCRIPT_FILE
-  llama stack build --distro $DISTRO --print-deps-only --image-type venv >>$SCRIPT_FILE
-  echo "Running script $SCRIPT_FILE"
-  bash $SCRIPT_FILE
+
+  if is_truthy "$LLAMA_STACK_ONLY"; then
+    LLAMA_STACK_DIR=llama-stack \
+      llama stack build --distro $DISTRO --image-type venv
+  else
+    LLAMA_STACK_DIR=llama-stack \
+    LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
+      llama stack build --distro $DISTRO --image-type venv
+  fi
 
   echo "Running integration tests before uploading"
   run_integration_tests $DISTRO

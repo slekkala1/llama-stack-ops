@@ -52,14 +52,7 @@ test_llama_cli
 distros_to_build=("starter")
 for build_distro in "${distros_to_build[@]}"; do
   echo "Building $build_distro distribution"
-  SCRIPT_FILE=$(mktemp)
-  echo "#!/bin/bash" >$SCRIPT_FILE
-  echo "set -euo pipefail" >>$SCRIPT_FILE
-  echo "set -x" >>$SCRIPT_FILE
-  llama stack build --distro $build_distro --print-deps-only --image-type venv >>$SCRIPT_FILE
-
-  echo "Running script $SCRIPT_FILE"
-  bash $SCRIPT_FILE
+  llama stack build --distro $build_distro --image-type venv
 done
 
 install_dependencies
