@@ -84,7 +84,7 @@ add_bump_version_commit() {
   else
     # TODO: this is dangerous use uvx toml-cli toml set project.version $RELEASE_VERSION instead of this
     # cringe perl code
-    perl -pi -e "s/version = .*$/version = \"$version\"/" pyproject.toml
+    perl -pi -e "s/^version = .*$/version = \"$version\"/" pyproject.toml
 
     if ! is_truthy "$LLAMA_STACK_ONLY"; then
       perl -pi -e "s/llama-stack-client>=.*,/llama-stack-client>=$RELEASE_VERSION\",/" pyproject.toml
