@@ -11,7 +11,7 @@ run_integration_tests() {
   stack_config=$1
 
   echo "Running integration tests (text)"
-  sh llama-stack/scripts/integration-tests.sh \
+  bash llama-stack/scripts/integration-tests.sh \
     --stack-config $stack_config \
     --provider ollama \
     --inference-mode replay
@@ -19,7 +19,7 @@ run_integration_tests() {
   # run vision tests only for library client meaning stack-config should not have localhost in it
   if [[ $stack_config != *"localhost"* ]]; then
     echo "Running integration tests (vision)"
-    sh llama-stack/scripts/integration-tests.sh \
+    bash llama-stack/scripts/integration-tests.sh \
       --stack-config $stack_config \
       --provider ollama \
       --inference-mode replay \
