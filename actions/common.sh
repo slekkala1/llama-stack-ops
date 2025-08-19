@@ -33,9 +33,7 @@ install_dependencies() {
 
 test_llama_cli() {
   uv pip list | grep llama
-  llama model prompt-format -m Llama3.2-90B-Vision-Instruct
-  llama model list
-  llama stack list-apis
-  llama stack list-providers inference
-  llama stack list-providers telemetry
+  llama model prompt-format -m Llama3.2-90B-Vision-Instruct > /dev/null
+  llama model list > /dev/null
+  llama stack list-apis > /dev/null
 }

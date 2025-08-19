@@ -105,12 +105,9 @@ test_library_client() {
   echo "Building distribution"
 
   if is_truthy "$LLAMA_STACK_ONLY"; then
-    LLAMA_STACK_DIR=llama-stack \
-      llama stack build --distro $DISTRO --image-type venv
+    llama stack build --distro $DISTRO --image-type venv
   else
-    LLAMA_STACK_DIR=llama-stack \
-    LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
-      llama stack build --distro $DISTRO --image-type venv
+    llama stack build --distro $DISTRO --image-type venv
   fi
 
   echo "Running integration tests before uploading"
