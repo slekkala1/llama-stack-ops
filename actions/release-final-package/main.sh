@@ -72,6 +72,43 @@ done
 
 set -x
 
+run_uv_lock() {
+  # Retry uv lock as PyPI index might be slow to update
+  echo "Attempting to lock dependencies with uv..."
+  for i in {1..5}; do
+    if uv lock --refresh --no-cache; then
+      echo "uv lock successful."
+      break
+    else
+      if [ "$i" -eq 5 ]; then
+        echo "uv lock failed after 5 attempts." >&2
+        exit 1
+      fi
+      echo "uv lock failed, retrying in 10 seconds (attempt $i/5)..."
+      sleep 5
+    fi
+  done
+}
+
+run_npm_install() {
+  echo "Attempting to install dependencies with npm..."
+  cd llama_stack/ui
+  for i in {1..5}; do
+    if npm install --package-lock-only; then
+      echo "npm install successful."
+      break
+    else
+      if [ "$i" -eq 5 ]; then
+        echo "npm install failed after 5 attempts." >&2
+        exit 1
+      fi
+      echo "npm install failed, retrying in 10 seconds (attempt $i/5)..."
+      sleep 5
+    fi
+  done
+  cd ../../
+}
+
 add_bump_version_commit() {
   local repo=$1
   local version=$2
@@ -99,21 +136,11 @@ add_bump_version_commit() {
     fi
 
     if is_truthy "$should_run_uv_lock"; then
-      # Retry uv lock as PyPI index might be slow to update
-      echo "Attempting to lock dependencies with uv..."
-      for i in {1..5}; do
-        if uv lock --refresh --no-cache; then
-          echo "uv lock successful."
-          break
-        else
-          if [ "$i" -eq 5 ]; then
-            echo "uv lock failed after 5 attempts." >&2
-            exit 1
-          fi
-          echo "uv lock failed, retrying in 10 seconds (attempt $i/5)..."
-          sleep 5
-        fi
-      done
+      run_uv_lock
+
+      if [ "$repo" == "stack" ]; then
+        run_npm_install
+      fi
     fi
   fi
 
