@@ -104,7 +104,6 @@ build_packages() {
 test_library_client() {
   echo "Building distribution"
 
-  export RUST_LOG=uv=debug
   if is_truthy "$LLAMA_STACK_ONLY"; then
     llama stack build --distro $DISTRO --image-type venv
   else
