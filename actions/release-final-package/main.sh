@@ -85,7 +85,7 @@ run_uv_lock() {
         exit 1
       fi
       echo "uv lock failed, retrying in 10 seconds (attempt $i/5)..."
-      sleep 5
+      sleep 10
     fi
   done
 }
@@ -103,7 +103,7 @@ run_npm_install() {
         exit 1
       fi
       echo "npm install failed, retrying in 10 seconds (attempt $i/5)..."
-      sleep 5
+      sleep 10
     fi
   done
   cd ../../
