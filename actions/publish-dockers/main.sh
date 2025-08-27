@@ -68,7 +68,7 @@ build_and_push_docker() {
 }
 
 if [ -z "$DISTROS" ]; then
-  DISTROS=(starter meta-reference-gpu postgres-demo dell)
+  DISTROS=(starter meta-reference-gpu postgres-demo dell starter-gpu)
 else
   DISTROS=(${DISTROS//,/ })
 fi
