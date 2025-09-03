@@ -16,8 +16,8 @@ jobs:
       id: version
       run: |
         DATE=$(date +%Y%m%d)
-        LATEST=$(curl -s https://api.github.com/repos/meta-llama/llama-stack/releases/latest | jq -r '.tag_name' | sed 's/^v//' || echo "0.1.0")
-        VERSION="${LATEST}-nightly.${DATE}"
+        VERSION="0.1.0-nightly.${DATE}"
+        echo "Generated nightly version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     
     - uses: ./actions/test-and-cut
