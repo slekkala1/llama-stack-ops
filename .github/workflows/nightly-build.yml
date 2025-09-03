@@ -32,6 +32,7 @@ jobs:
         tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY || 'fake-key' }}
       env:
         NIGHTLY_BUILD: "true"
+        LLAMA_STACK_TEST_INFERENCE_MODE: "replay"
     
     - uses: ./actions/upload-packages-and-tag
       with:
@@ -41,3 +42,4 @@ jobs:
         npm_token: ${{ secrets.NPM_TOKEN || 'fake-npm-token' }}
       env:
         NIGHTLY_BUILD: "true"
+        LLAMA_STACK_TEST_INFERENCE_MODE: "replay"
