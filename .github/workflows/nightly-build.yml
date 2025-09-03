@@ -16,7 +16,7 @@ jobs:
       id: version
       run: |
         DATE=$(date +%Y%m%d)
-        VERSION="0.1.0-nightly.${DATE}"
+        VERSION="0.1.0.dev${DATE}"
         echo "Generated nightly version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     
