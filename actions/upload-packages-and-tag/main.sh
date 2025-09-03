@@ -68,13 +68,23 @@ for repo in "${REPOS[@]}"; do
 
   # tag the commit on the branch because merging it back to main could move things
   # beyond the cut-point (main could have been updated since the cut)
-  echo "Tagging llama-$repo at version $VERSION (not pushing yet)"
-  git tag -a "v$VERSION" -m "Release version $VERSION"
+  if [ "$NIGHTLY_BUILD" != "true" ]; then
+    echo "Tagging llama-$repo at version $VERSION (not pushing yet)"
+    git tag -a "v$VERSION" -m "Release version $VERSION"
+  else
+    echo "Skipping git tag creation for nightly build"
+  fi
 
   if [ "$repo" == "stack-client-typescript" ]; then
     echo "Uploading llama-$repo to npm"
     cd dist
-    npx yarn publish --access public --tag rc-$VERSION --registry https://registry.npmjs.org/
+    # Use nightly tag for nightly builds, otherwise use version-specific tag
+    if [ "$NIGHTLY_BUILD" = "true" ]; then
+      NPM_PUBLISH_TAG="nightly"
+    else
+      NPM_PUBLISH_TAG="rc-$VERSION"
+    fi
+    npx yarn publish --access public --tag $NPM_PUBLISH_TAG --registry https://registry.npmjs.org/
     cd ..
   else
     echo "Uploading llama-$repo to testpypi"
@@ -84,8 +94,13 @@ for repo in "${REPOS[@]}"; do
       dist/*.whl dist/*.tar.gz
   fi
 
-  echo "Pushing tag for llama-$repo"
-  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "v$VERSION"
+  # Only push git tags for non-nightly builds
+  if [ "$NIGHTLY_BUILD" != "true" ]; then
+    echo "Pushing tag for llama-$repo"
+    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "v$VERSION"
+  else
+    echo "Skipping git tag push for nightly build"
+  fi
 
   cd ..
 done

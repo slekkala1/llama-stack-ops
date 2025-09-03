@@ -1,0 +1,43 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    environment: nightly
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Generate version
+      id: version
+      run: |
+        DATE=$(date +%Y%m%d)
+        LATEST=$(curl -s https://api.github.com/repos/meta-llama/llama-stack/releases/latest | jq -r '.tag_name' | sed 's/^v//' || echo "0.1.0")
+        VERSION="${LATEST}-nightly.${DATE}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
+    - uses: ./actions/test-and-cut
+      with:
+        version: ${{ steps.version.outputs.version }}
+        commit_id: "origin/main"
+        cut_mode: "test-and-cut"
+        llama_stack_only: false
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
+      env:
+        NIGHTLY_BUILD: "true"
+    
+    - uses: ./actions/upload-packages-and-tag
+      with:
+        version: ${{ steps.version.outputs.version }}
+        llama_stack_only: false
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}
+        npm_token: ${{ secrets.NPM_TOKEN }}
+      env:
+        NIGHTLY_BUILD: "true"

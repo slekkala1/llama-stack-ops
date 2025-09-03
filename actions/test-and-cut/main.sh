@@ -38,6 +38,15 @@ is_truthy() {
 
 DISTRO=starter
 
+# Determine branch name and build type based on environment
+if [ "$NIGHTLY_BUILD" = "true" ]; then
+  BRANCH_NAME="nightly-$(date +%Y%m%d)"
+  BUILD_TYPE="nightly build"
+else
+  BRANCH_NAME="rc-$VERSION"
+  BUILD_TYPE="release candidate"
+fi
+
 TMPDIR=$(mktemp -d)
 cd $TMPDIR
 
@@ -62,13 +71,13 @@ build_packages() {
       git fetch origin "$REF"
 
       # Use FETCH_HEAD which is where the fetched commit is stored
-      git checkout -b "rc-$VERSION" FETCH_HEAD
+      git checkout -b "$BRANCH_NAME" FETCH_HEAD
     elif [ "$repo" == "stack-client-python" ] && [ -n "$CLIENT_PYTHON_COMMIT_ID" ]; then
       REF="${CLIENT_PYTHON_COMMIT_ID#origin/}"
       git fetch origin "$REF"
-      git checkout -b "rc-$VERSION" FETCH_HEAD
+      git checkout -b "$BRANCH_NAME" FETCH_HEAD
     else
-      git checkout -b "rc-$VERSION"
+      git checkout -b "$BRANCH_NAME"
     fi
 
     # TODO: this is dangerous use uvx toml-cli toml set project.version $VERSION instead of this
@@ -179,12 +188,12 @@ if [ "$CUT_MODE" == "test-only" ]; then
 fi
 
 for repo in "${REPOS[@]}"; do
-  echo "Pushing branch rc-$VERSION for llama-$repo"
+  echo "Pushing $BUILD_TYPE branch $BRANCH_NAME for llama-$repo"
   cd llama-$repo
   org=$(github_org $repo)
-  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "rc-$VERSION"
+  git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-$repo.git" "$BRANCH_NAME"
   cd ..
 
 done
 
-echo "Successfully cut a release candidate branch $VERSION"
+echo "Successfully cut a $BUILD_TYPE branch $BRANCH_NAME for $VERSION"
