@@ -24,12 +24,12 @@ jobs:
       with:
         version: ${{ steps.version.outputs.version }}
         commit_id: "origin/main"
-        cut_mode: "test-and-cut"
+        cut_mode: "test-only"  # Skip branch pushing for testing
         llama_stack_only: false
-        github_token: ${{ secrets.LLAMA_REPOS_PAT }}
-        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
-        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
-        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}  # Use built-in token for testing
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY || 'fake-key' }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY || 'fake-key' }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY || 'fake-key' }}
       env:
         NIGHTLY_BUILD: "true"
     
