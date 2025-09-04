@@ -49,8 +49,23 @@ for repo in "${REPOS[@]}"; do
   cd llama-$repo
 
   echo "Building package..."
-  git fetch origin "rc-$VERSION":"rc-$VERSION"
-  git checkout "rc-$VERSION"
+  if [ "$NIGHTLY_BUILD" = "true" ]; then
+    echo "Building nightly from main branch"
+    git checkout main
+    
+    # Update version numbers for nightly build
+    if [ "$repo" == "stack-client-typescript" ]; then
+      echo "Updating TypeScript package version to $VERSION"
+      perl -pi -e "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+    else
+      echo "Updating Python package version to $VERSION"  
+      perl -pi -e "s/^version = .*$/version = \"$VERSION\"/" pyproject.toml
+    fi
+  else
+    # Original release logic - fetch and checkout RC branch
+    git fetch origin "rc-$VERSION":"rc-$VERSION"
+    git checkout "rc-$VERSION"
+  fi
 
   if [ "$repo" == "stack-client-typescript" ]; then
     NPM_VERSION=$(cat package.json | jq -r '.version')
