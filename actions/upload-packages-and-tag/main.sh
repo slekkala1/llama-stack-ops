@@ -99,14 +99,28 @@ for repo in "${REPOS[@]}"; do
     else
       NPM_PUBLISH_TAG="rc-$VERSION"
     fi
-    npx yarn publish --access public --tag $NPM_PUBLISH_TAG --registry https://registry.npmjs.org/
+    
+    # Skip actual upload for testing with fake tokens
+    if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
+      echo "Skipping npm publish (using fake token for testing)"
+      echo "Would publish with tag: $NPM_PUBLISH_TAG"
+    else
+      npx yarn publish --access public --tag $NPM_PUBLISH_TAG --registry https://registry.npmjs.org/
+    fi
     cd ..
   else
     echo "Uploading llama-$repo to testpypi"
-    python -m twine upload \
-      --repository-url https://test.pypi.org/legacy/ \
-      --skip-existing \
-      dist/*.whl dist/*.tar.gz
+    
+    # Skip actual upload for fork testing
+    if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
+      echo "Skipping TestPyPI upload (fork testing mode)"
+      echo "Would upload: dist/*.whl dist/*.tar.gz"
+    else
+      python -m twine upload \
+        --repository-url https://test.pypi.org/legacy/ \
+        --skip-existing \
+        dist/*.whl dist/*.tar.gz
+    fi
   fi
 
   # Only push git tags for non-nightly builds
