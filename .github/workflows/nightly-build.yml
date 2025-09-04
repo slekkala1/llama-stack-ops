@@ -1,0 +1,34 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    environment: nightly
+    permissions:
+      id-token: write  # Required for trusted publishing to PyPI/TestPyPI
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Generate version
+      id: version
+      run: |
+        DATE=$(date +%Y%m%d)
+        VERSION="0.1.0.dev${DATE}"
+        echo "Generated nightly version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
+    - uses: ./actions/nightly-test-publish
+      with:
+        version: ${{ steps.version.outputs.version }}
+        llama_stack_only: false
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        npm_token: ${{ secrets.NPM_TOKEN || 'fake-npm-token' }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY || 'fake-key' }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY || 'fake-key' }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY || 'fake-key' }}
