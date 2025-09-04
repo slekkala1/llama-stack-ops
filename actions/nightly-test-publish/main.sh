@@ -112,7 +112,9 @@ test_packages() {
     test_llama_cli
     echo "Running integration tests for main stack..."
     llama stack build --distro starter --image-type venv
+    cd ..
     run_integration_tests starter
+    cd llama-stack
   fi
 }
 
