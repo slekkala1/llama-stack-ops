@@ -8,6 +8,8 @@ fi
 if [ -z "$NPM_TOKEN" ]; then
   echo "Warning: NPM_TOKEN not set, will skip npm publishing" >&2
   SKIP_NPM_PUBLISH="true"
+else
+  SKIP_NPM_PUBLISH="false"
 fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
@@ -85,7 +87,7 @@ build_packages() {
 }
 
 build_typescript_package() {
-  NPM_VERSION=$(cat package.json | jq -r '.version')
+  local NPM_VERSION=$(cat package.json | jq -r '.version')
   echo "Building TypeScript package version: $NPM_VERSION"
 
   npx yarn install
@@ -93,7 +95,7 @@ build_typescript_package() {
 }
 
 build_python_package() {
-  PYPROJECT_VERSION=$(cat pyproject.toml | grep version)
+  local PYPROJECT_VERSION=$(cat pyproject.toml | grep version)
   echo "Building Python package version: $PYPROJECT_VERSION"
 
   uv build -q
