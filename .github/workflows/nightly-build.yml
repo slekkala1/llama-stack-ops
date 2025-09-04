@@ -29,6 +29,3 @@ jobs:
         llama_stack_only: false
         github_token: ${{ secrets.GITHUB_TOKEN }}
         npm_token: ${{ secrets.NPM_TOKEN || 'fake-npm-token' }}
-        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY || 'fake-key' }}
-        together_api_key: ${{ secrets.TOGETHER_API_KEY || 'fake-key' }}
-        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY || 'fake-key' }}

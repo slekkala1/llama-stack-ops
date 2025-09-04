@@ -80,35 +80,25 @@ build_packages() {
   echo "Building packages for $repo..."
 
   if [ "$repo" == "stack-client-typescript" ]; then
-    build_typescript_package
+    local VERSION_INFO=$(cat package.json | jq -r '.version')
+    echo "Building TypeScript package version: $VERSION_INFO"
+    npx yarn install
+    npx yarn build
   else
-    build_python_package
+    local VERSION_INFO=$(cat pyproject.toml | grep version)
+    echo "Building Python package version: $VERSION_INFO"
+    uv build -q
+    uv pip install dist/*.whl
   fi
-}
-
-build_typescript_package() {
-  local NPM_VERSION=$(cat package.json | jq -r '.version')
-  echo "Building TypeScript package version: $NPM_VERSION"
-
-  npx yarn install
-  npx yarn build
-}
-
-build_python_package() {
-  local PYPROJECT_VERSION=$(cat pyproject.toml | grep version)
-  echo "Building Python package version: $PYPROJECT_VERSION"
-
-  uv build -q
-  uv pip install dist/*.whl
 }
 
 test_packages() {
   local repo=$1
 
-  echo "Testing packages for $repo..."
 
   # Basic CLI testing and Run integration tests for main stack package
   if [ "$repo" == "stack" ]; then
+    echo "Testing packages for $repo..."
     test_llama_cli
     echo "Running integration tests for main stack..."
     llama stack build --distro starter --image-type venv
@@ -124,52 +114,28 @@ publish_packages() {
   echo "Publishing packages for $repo..."
 
   if [ "$repo" == "stack-client-typescript" ]; then
-    publish_npm_package
+    echo "Publishing TypeScript package to npm"
+    cd dist
+    if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
+      echo "Skipping npm publish (using fake token for testing)"
+      echo "Would publish with tag: nightly"
+    else
+      npx yarn publish --access public --tag nightly --registry https://registry.npmjs.org/
+    fi
+    cd ..
   else
-    publish_python_package
+    echo "Publishing Python package to TestPyPI"
+    if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
+      echo "Skipping TestPyPI upload (fork testing mode)"
+      echo "Would upload: dist/*.whl dist/*.tar.gz"
+      ls -la dist/
+    else
+      python -m twine upload \
+        --repository-url https://test.pypi.org/legacy/ \
+        --skip-existing \
+        dist/*.whl dist/*.tar.gz
+    fi
   fi
-}
-
-publish_npm_package() {
-  echo "Publishing TypeScript package to npm"
-  cd dist
-
-  if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
-    echo "Skipping npm publish (using fake token for testing)"
-    echo "Would publish with tag: nightly"
-  else
-    npx yarn publish --access public --tag nightly --registry https://registry.npmjs.org/
-  fi
-  cd ..
-}
-
-publish_python_package() {
-  echo "Publishing Python package to TestPyPI"
-
-  if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
-    echo "Skipping TestPyPI upload (fork testing mode)"
-    echo "Would upload: dist/*.whl dist/*.tar.gz"
-    ls -la dist/
-  else
-    python -m twine upload \
-      --repository-url https://test.pypi.org/legacy/ \
-      --skip-existing \
-      dist/*.whl dist/*.tar.gz
-  fi
-}
-
-process_repository() {
-  local repo=$1
-
-  echo "Processing $repo..."
-
-  clone_and_prepare_repo $repo
-  build_packages $repo
-  test_packages $repo
-  publish_packages $repo
-
-  echo "Completed processing $repo"
-  cd ..
 }
 
 main() {
@@ -185,7 +151,15 @@ main() {
   setup_environment
 
   for repo in "${REPOS[@]}"; do
-    process_repository $repo
+    echo "Processing $repo..."
+
+    clone_and_prepare_repo $repo
+    build_packages $repo
+    test_packages $repo
+    publish_packages $repo
+
+    echo "Completed processing $repo"
+    cd ..
   done
 
   echo "Nightly test, build and publish completed successfully!"
