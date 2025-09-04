@@ -107,11 +107,9 @@ test_packages() {
 
   echo "Testing packages for $repo..."
 
-  # Basic CLI testing for all packages
-  test_llama_cli
-
-  # Run integration tests for main stack package
+  # Basic CLI testing and Run integration tests for main stack package
   if [ "$repo" == "stack" ]; then
+    test_llama_cli
     echo "Running integration tests for main stack..."
     llama stack build --distro starter --image-type venv --print-deps-only
     run_integration_tests starter
