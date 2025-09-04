@@ -9,6 +9,9 @@ jobs:
   nightly:
     runs-on: ubuntu-latest
     environment: nightly
+    permissions:
+      id-token: write  # Required for trusted publishing to PyPI/TestPyPI
+      contents: read
     steps:
     - uses: actions/checkout@v4
     
