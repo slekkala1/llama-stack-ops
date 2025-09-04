@@ -23,7 +23,7 @@ jobs:
         echo "Generated nightly version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     
-    - uses: ./actions/nightly-test-publish
+    - uses: ./actions/nightly-build-publish
       with:
         version: ${{ steps.version.outputs.version }}
         llama_stack_only: false
