@@ -113,25 +113,14 @@ publish_packages() {
   if [ "$repo" == "stack-client-typescript" ]; then
     echo "Publishing TypeScript package to npm"
     cd dist
-    if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
-      echo "Skipping npm publish (using fake token for testing)"
-      echo "Would publish with tag: nightly"
-    else
-      npx yarn publish --access public --tag nightly --registry https://registry.npmjs.org/
-    fi
+    npx yarn publish --access public --tag nightly --registry https://registry.npmjs.org/
     cd ..
   else
     echo "Publishing Python package to TestPyPI"
-    if [ "$NPM_TOKEN" = "fake-npm-token" ]; then
-      echo "Skipping TestPyPI upload (fork testing mode)"
-      echo "Would upload: dist/*.whl dist/*.tar.gz"
-      ls -la dist/
-    else
-      python -m twine upload \
-        --repository-url https://test.pypi.org/legacy/ \
-        --skip-existing \
-        dist/*.whl dist/*.tar.gz
-    fi
+    python -m twine upload \
+      --repository-url https://test.pypi.org/legacy/ \
+      --skip-existing \
+      dist/*.whl dist/*.tar.gz
   fi
 }
 
