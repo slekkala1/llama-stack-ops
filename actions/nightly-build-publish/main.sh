@@ -6,10 +6,8 @@ if [ -z "$VERSION" ]; then
 fi
 
 if [ -z "$NPM_TOKEN" ]; then
-  echo "Warning: NPM_TOKEN not set, will skip npm publishing" >&2
-  SKIP_NPM_PUBLISH="true"
-else
-  SKIP_NPM_PUBLISH="false"
+  echo "You must set the NPM_TOKEN environment variable" >&2
+  exit 1
 fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
@@ -31,9 +29,7 @@ is_truthy() {
 setup_environment() {
   echo "Setting up build environment..."
 
-  if [ "$SKIP_NPM_PUBLISH" != "true" ]; then
-    npm config set '//registry.npmjs.org/:_authToken' "$NPM_TOKEN"
-  fi
+  npm config set '//registry.npmjs.org/:_authToken' "$NPM_TOKEN"
 
   npm install -g yarn
 
@@ -44,7 +40,7 @@ setup_environment() {
   source .venv/bin/activate
   uv pip install twine
 
-  install_dependencies  # Install test dependencies
+  install_dependencies  # Installs test dependencies
 }
 
 clone_and_prepare_repo() {
@@ -95,11 +91,12 @@ build_packages() {
 test_packages() {
   local repo=$1
 
-
   # Basic CLI testing and Run integration tests for main stack package
+  # TODO: Add docker tests also
   if [ "$repo" == "stack" ]; then
     echo "Testing packages for $repo..."
     test_llama_cli
+
     echo "Running integration tests for main stack..."
     llama stack build --distro starter --image-type venv
     cd ..
@@ -165,5 +162,5 @@ main() {
   echo "Nightly test, build and publish completed successfully!"
 }
 
-# Execute main function
+# Execute main
 main "$@"

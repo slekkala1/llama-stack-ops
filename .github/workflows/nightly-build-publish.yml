@@ -14,7 +14,7 @@ jobs:
       contents: read
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Generate version
       id: version
       run: |
@@ -22,7 +22,7 @@ jobs:
         VERSION="0.1.0.dev${DATE}"
         echo "Generated nightly version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
-    
+
     - uses: ./actions/nightly-build-publish
       with:
         version: ${{ steps.version.outputs.version }}
