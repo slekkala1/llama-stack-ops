@@ -93,8 +93,8 @@ run_uv_lock() {
 run_npm_install() {
   echo "Attempting to install dependencies with npm..."
   cd llama_stack/ui
-  for i in {1..5}; do
-    if npm install --package-lock-only; then
+  for i in {1..10}; do
+    if npm install --package-lock-only --prefer-online; then
       echo "npm install successful."
       break
     else
