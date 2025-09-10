@@ -14,13 +14,13 @@ run_integration_tests() {
   bash llama-stack/scripts/integration-tests.sh \
     --stack-config $stack_config \
     --inference-mode replay \
-    --test-suite base
+    --suite base
 
   echo "Running integration tests (vision)"
   bash llama-stack/scripts/integration-tests.sh \
     --stack-config $stack_config \
     --inference-mode replay \
-    --test-suite vision
+    --suite vision
 }
 
 install_dependencies() {
