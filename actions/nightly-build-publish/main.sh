@@ -5,13 +5,19 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-if [ -z "$NPM_TOKEN" ]; then
-  echo "You must set the NPM_TOKEN environment variable" >&2
+if [ -z "$VERSION" ]; then
+  echo "You must set the VERSION environment variable" >&2
   exit 1
 fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
+
+# Set fake tokens for fork testing when real ones are not available
+NPM_TOKEN=${NPM_TOKEN:-"fake-npm-token"}
+TOGETHER_API_KEY=${TOGETHER_API_KEY:-"fake-together-api-key"}
+FIREWORKS_API_KEY=${FIREWORKS_API_KEY:-"fake-fireworks-api-key"}
+TAVILY_SEARCH_API_KEY=${TAVILY_SEARCH_API_KEY:-"fake-tavily-search-api-key"}
 
 source $(dirname $0)/../common.sh
 
