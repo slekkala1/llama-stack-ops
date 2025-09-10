@@ -17,10 +17,27 @@ jobs:
 
     - name: Generate version
       id: version
+      env:
+        GITHUB_TOKEN: ${{ secrets.LLAMA_REPOS_PAT }}
       run: |
+        # Source common.sh to get github_org function
+        source ./actions/common.sh
+        
+        # Extract base version from llama-stack repo
+        echo "Extracting base version from llama-stack repo..."
+        org=$(github_org stack)
+        git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-stack.git" temp-version-check
+        cd temp-version-check
+        
+        # Extract version from pyproject.toml
+        BASE_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+        cd ..
+        rm -rf temp-version-check
+        
+        # Generate nightly version with date suffix
         DATE=$(date +%Y%m%d)
-        VERSION="0.1.0.dev${DATE}"
-        echo "Generated nightly version: $VERSION"
+        VERSION="${BASE_VERSION}-dev.${DATE}"
+        echo "Generated nightly version: $VERSION (base: $BASE_VERSION)"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - uses: ./actions/nightly-build-publish
@@ -29,3 +46,6 @@ jobs:
         llama_stack_only: false
         github_token: ${{ secrets.LLAMA_REPOS_PAT }}
         npm_token: ${{ secrets.NPM_TOKEN }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}

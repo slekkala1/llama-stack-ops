@@ -18,14 +18,6 @@ source $(dirname $0)/../common.sh
 set -euo pipefail
 set -x
 
-is_truthy() {
-  case "$1" in
-  true | 1) return 0 ;;
-  false | 0) return 1 ;;
-  *) return 1 ;;
-  esac
-}
-
 setup_environment() {
   echo "Setting up build environment..."
 
@@ -88,22 +80,6 @@ build_packages() {
   fi
 }
 
-test_packages() {
-  local repo=$1
-
-  # Basic CLI testing and Run integration tests for main stack package
-  # TODO: Add docker tests also
-  if [ "$repo" == "stack" ]; then
-    echo "Testing packages for $repo..."
-    test_llama_cli
-
-    echo "Running integration tests for main stack..."
-    llama stack build --distro starter --image-type venv
-    cd ..
-    run_integration_tests starter
-    cd llama-stack
-  fi
-}
 
 publish_packages() {
   local repo=$1
@@ -136,17 +112,29 @@ main() {
 
   setup_environment
 
+  # First build packages
   for repo in "${REPOS[@]}"; do
     echo "Processing $repo..."
 
     clone_and_prepare_repo $repo
     build_packages $repo
-    test_packages $repo
-    publish_packages $repo
 
     echo "Completed processing $repo"
     cd ..
   done
+
+  # Run tests
+  test_llama_cli
+  test_library_client "$DISTRO" "$LLAMA_STACK_ONLY"
+  test_docker "$DISTRO" "$LLAMA_STACK_ONLY" "$TOGETHER_API_KEY" "$FIREWORKS_API_KEY" "$TAVILY_SEARCH_API_KEY"
+
+  # Publish packages once build and test pass
+  for repo in "${REPOS[@]}"; do
+    echo "Publishing $repo..."
+    cd llama-$repo
+    publish_packages $repo
+  done
+
 
   echo "Nightly test, build and publish completed successfully!"
 }

@@ -14,6 +14,15 @@ inputs:
     description: 'Only test and publish llama-stack (default: false)'
     required: false
     default: 'false'
+  together_api_key:
+    description: 'Together API key for testing'
+    required: false
+  fireworks_api_key:
+    description: 'Fireworks API key for testing'
+    required: false
+  tavily_search_api_key:
+    description: 'Tavily Search API key for testing'
+    required: false
 
 runs:
   using: 'composite'
@@ -43,6 +52,9 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github_token }}
         LLAMA_STACK_ONLY: ${{ inputs.llama_stack_only }}
         NPM_TOKEN: ${{ inputs.npm_token }}
+        TOGETHER_API_KEY: ${{ inputs.together_api_key }}
+        FIREWORKS_API_KEY: ${{ inputs.fireworks_api_key }}
+        TAVILY_SEARCH_API_KEY: ${{ inputs.tavily_search_api_key }}
       run: |
         chmod +x ${{ github.action_path }}/main.sh
         ${{ github.action_path }}/main.sh

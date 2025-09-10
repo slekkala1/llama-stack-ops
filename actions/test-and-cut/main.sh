@@ -28,13 +28,6 @@ if [ "$CUT_MODE" != "test-and-cut" ] && [ "$CUT_MODE" != "test-only" ] && [ "$CU
   exit 1
 fi
 
-is_truthy() {
-  case "$1" in
-  true | 1) return 0 ;;
-  false | 0) return 1 ;;
-  *) return 1 ;;
-  esac
-}
 
 DISTRO=starter
 
@@ -101,66 +94,6 @@ build_packages() {
   done
 }
 
-test_library_client() {
-  echo "Building distribution"
-
-  if is_truthy "$LLAMA_STACK_ONLY"; then
-    llama stack build --distro $DISTRO --image-type venv
-  else
-    llama stack build --distro $DISTRO --image-type venv
-  fi
-
-  echo "Running integration tests before uploading"
-  run_integration_tests $DISTRO
-}
-
-test_docker() {
-  echo "Testing docker"
-
-  if is_truthy "$LLAMA_STACK_ONLY"; then
-    USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
-      llama stack build --distro $DISTRO --image-type container
-  else
-    USE_COPY_NOT_MOUNT=true LLAMA_STACK_DIR=llama-stack \
-      LLAMA_STACK_CLIENT_DIR=llama-stack-client-python \
-      llama stack build --distro $DISTRO --image-type container
-  fi
-
-  docker images
-
-  # run the container in the background
-  export LLAMA_STACK_PORT=8321
-
-  docker run -d --network host --name llama-stack-$DISTRO -p $LLAMA_STACK_PORT:$LLAMA_STACK_PORT \
-    -e OLLAMA_URL=http://localhost:11434 \
-    -e SAFETY_MODEL=ollama/llama-guard3:1b \
-    -e LLAMA_STACK_TEST_INFERENCE_MODE=replay \
-    -e LLAMA_STACK_TEST_RECORDING_DIR=/app/llama-stack-source/tests/integration/recordings \
-    -e TOGETHER_API_KEY=$TOGETHER_API_KEY \
-    -e FIREWORKS_API_KEY=$FIREWORKS_API_KEY \
-    -e TAVILY_SEARCH_API_KEY=$TAVILY_SEARCH_API_KEY \
-    -v $(pwd)/llama-stack:/app/llama-stack-source \
-    distribution-$DISTRO:dev \
-    --port $LLAMA_STACK_PORT
-
-  # check localhost:$LLAMA_STACK_PORT/health repeatedly until it returns 200
-  iterations=0
-  max_iterations=20
-  while [ $(curl -s -o /dev/null -w "%{http_code}" localhost:$LLAMA_STACK_PORT/v1/health) -ne 200 ]; do
-    sleep 2
-    iterations=$((iterations + 1))
-    if [ $iterations -gt $max_iterations ]; then
-      echo "Failed to start the container"
-      docker logs llama-stack-$DISTRO
-      exit 1
-    fi
-  done
-
-  run_integration_tests http://localhost:$LLAMA_STACK_PORT
-
-  # stop the container
-  docker stop llama-stack-$DISTRO
-}
 
 build_packages
 
@@ -168,8 +101,8 @@ install_dependencies
 
 if [ "$CUT_MODE" != "cut-only" ]; then
   test_llama_cli
-  test_library_client
-  test_docker
+  test_library_client "$DISTRO" "$LLAMA_STACK_ONLY"
+  test_docker "$DISTRO" "$LLAMA_STACK_ONLY" "$TOGETHER_API_KEY" "$FIREWORKS_API_KEY" "$TAVILY_SEARCH_API_KEY"
 fi
 
 # if MODE is test-only, don't cut the branch
