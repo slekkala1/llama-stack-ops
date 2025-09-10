@@ -12,6 +12,7 @@ fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
+DISTRO=starter
 
 # Set fake tokens for fork testing when real ones are not available
 NPM_TOKEN=${NPM_TOKEN:-"fake-npm-token"}
