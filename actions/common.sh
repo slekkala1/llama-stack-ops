@@ -13,14 +13,12 @@ run_integration_tests() {
   echo "Running integration tests (text)"
   bash llama-stack/scripts/integration-tests.sh \
     --stack-config $stack_config \
-    --provider ollama \
     --inference-mode replay \
     --test-suite base
 
   echo "Running integration tests (vision)"
   bash llama-stack/scripts/integration-tests.sh \
     --stack-config $stack_config \
-    --provider ollama \
     --inference-mode replay \
     --test-suite vision
 }
