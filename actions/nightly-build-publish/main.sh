@@ -139,7 +139,8 @@ main() {
   for repo in "${REPOS[@]}"; do
     echo "Publishing $repo..."
     cd llama-$repo
-    publish_packages $repo
+    # publish_packages $repo
+    cd ..
   done
 
 
