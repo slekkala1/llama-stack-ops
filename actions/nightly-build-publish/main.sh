@@ -7,15 +7,14 @@ else
   echo "Using provided VERSION: $VERSION"
 fi
 
+if [ -z "$NPM_TOKEN" ]; then
+  echo "You must set the NPM_TOKEN environment variable" >&2
+  exit 1
+fi
+
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
 DISTRO=starter
-
-# Set fake tokens for fork testing when real ones are not available
-NPM_TOKEN=${NPM_TOKEN:-"fake-npm-token"}
-TOGETHER_API_KEY=${TOGETHER_API_KEY:-"fake-together-api-key"}
-FIREWORKS_API_KEY=${FIREWORKS_API_KEY:-"fake-fireworks-api-key"}
-TAVILY_SEARCH_API_KEY=${TAVILY_SEARCH_API_KEY:-"fake-tavily-search-api-key"}
 
 source $(dirname $0)/../common.sh
 
@@ -28,23 +27,23 @@ generate_nightly_version() {
     echo "Using provided VERSION: $VERSION"
     return
   fi
-  
+
   echo "Extracting base version from llama-stack repo..."
-  
+
   # Clone llama-stack repo to extract version
   local org=$(github_org stack)
   git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-stack.git" temp-version-check
   cd temp-version-check
-  
+
   # Extract version from pyproject.toml
   local base_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
   cd ..
   rm -rf temp-version-check
-  
+
   # Generate nightly version with date suffix
   local date=$(date +%Y%m%d)
   VERSION="${base_version}-dev.${date}"
-  
+
   echo "Generated nightly version: $VERSION (base: $base_version)"
 }
 
@@ -140,14 +139,13 @@ main() {
 
   # Repos to process
   REPOS=(stack-client-python stack-client-typescript stack)
-
   if is_truthy "$LLAMA_STACK_ONLY"; then
     REPOS=(stack)
   fi
 
   setup_environment
 
-  # First build packages
+  # Build packages
   for repo in "${REPOS[@]}"; do
     echo "Processing $repo..."
 
@@ -163,11 +161,11 @@ main() {
   test_library_client "$DISTRO" "$LLAMA_STACK_ONLY"
   test_docker "$DISTRO" "$LLAMA_STACK_ONLY" "$TOGETHER_API_KEY" "$FIREWORKS_API_KEY" "$TAVILY_SEARCH_API_KEY"
 
-  # Publish packages once build and test pass
+  # Publish packages after build and test pass
   for repo in "${REPOS[@]}"; do
     echo "Publishing $repo..."
     cd llama-$repo
-    # publish_packages $repo
+    publish_packages $repo
     cd ..
   done
 
