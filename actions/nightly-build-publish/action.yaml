@@ -2,8 +2,8 @@ name: 'Nightly Test Build and Publish'
 description: 'Test, build and publish nightly packages to test registries for llama-stack, llama-stack-client-python, and llama-stack-client-typescript repos'
 inputs:
   version:
-    description: 'Version of the package to publish'
-    required: true
+    description: 'Version of the package to publish (if not provided, will generate nightly version)'
+    required: false
   github_token:
     description: 'GitHub token for repo access'
     required: true
@@ -48,7 +48,7 @@ runs:
     - name: Test Build and Publish
       shell: bash
       env:
-        VERSION: ${{ inputs.version }}
+        VERSION: ${{ inputs.version || '' }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         LLAMA_STACK_ONLY: ${{ inputs.llama_stack_only }}
         NPM_TOKEN: ${{ inputs.npm_token }}

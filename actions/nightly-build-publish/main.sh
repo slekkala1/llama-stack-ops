@@ -1,13 +1,10 @@
 #!/bin/bash
 
+# Generate version if not provided
 if [ -z "$VERSION" ]; then
-  echo "You must set the VERSION environment variable" >&2
-  exit 1
-fi
-
-if [ -z "$VERSION" ]; then
-  echo "You must set the VERSION environment variable" >&2
-  exit 1
+  echo "VERSION not provided, will generate nightly version..."
+else
+  echo "Using provided VERSION: $VERSION"
 fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
@@ -24,6 +21,27 @@ source $(dirname $0)/../common.sh
 
 set -euo pipefail
 set -x
+
+generate_nightly_version() {
+  echo "Extracting base version from llama-stack repo..."
+  
+  # Clone llama-stack repo to extract version
+  local org=$(github_org stack)
+  git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-stack.git" temp-version-check
+  cd temp-version-check
+  
+  # Extract version from pyproject.toml
+  local base_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+  cd ..
+  rm -rf temp-version-check
+  
+  # Generate nightly version with date suffix
+  local date=$(date +%Y%m%d)
+  local nightly_version="${base_version}-dev.${date}"
+  
+  echo "Generated nightly version: $nightly_version (base: $base_version)"
+  echo "$nightly_version"
+}
 
 setup_environment() {
   echo "Setting up build environment..."
@@ -109,6 +127,14 @@ publish_packages() {
 
 main() {
   echo "Starting combined test, build and publish for nightly packages..."
+
+  # Generate version if not provided
+  if [ -z "$VERSION" ]; then
+    echo "Generating nightly version..."
+    VERSION=$(generate_nightly_version)
+    export VERSION
+  fi
+  echo "Using version: $VERSION"
 
   # Repos to process
   REPOS=(stack-client-python stack-client-typescript stack)
