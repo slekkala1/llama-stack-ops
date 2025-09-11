@@ -1,8 +1,10 @@
 #!/bin/bash
 
+# Generate version if not provided
 if [ -z "$VERSION" ]; then
-  echo "You must set the VERSION environment variable" >&2
-  exit 1
+  echo "VERSION not provided, will generate nightly version..."
+else
+  echo "Using provided VERSION: $VERSION"
 fi
 
 if [ -z "$NPM_TOKEN" ]; then
@@ -12,18 +14,37 @@ fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-}
 LLAMA_STACK_ONLY=${LLAMA_STACK_ONLY:-false}
+DISTRO=starter
 
 source $(dirname $0)/../common.sh
 
 set -euo pipefail
 set -x
 
-is_truthy() {
-  case "$1" in
-  true | 1) return 0 ;;
-  false | 0) return 1 ;;
-  *) return 1 ;;
-  esac
+generate_nightly_version() {
+  # Only generate version if not already set
+  if [ -n "$VERSION" ]; then
+    echo "Using provided VERSION: $VERSION"
+    return
+  fi
+
+  echo "Extracting base version from llama-stack repo..."
+
+  # Clone llama-stack repo to extract version
+  local org=$(github_org stack)
+  git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/$org/llama-stack.git" temp-version-check
+  cd temp-version-check
+
+  # Extract version from pyproject.toml
+  local base_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+  cd ..
+  rm -rf temp-version-check
+
+  # Generate nightly version with date suffix
+  local date=$(date +%Y%m%d)
+  VERSION="${base_version}-dev.${date}"
+
+  echo "Generated nightly version: $VERSION (base: $base_version)"
 }
 
 setup_environment() {
@@ -88,22 +109,6 @@ build_packages() {
   fi
 }
 
-test_packages() {
-  local repo=$1
-
-  # Basic CLI testing and Run integration tests for main stack package
-  # TODO: Add docker tests also
-  if [ "$repo" == "stack" ]; then
-    echo "Testing packages for $repo..."
-    test_llama_cli
-
-    echo "Running integration tests for main stack..."
-    llama stack build --distro starter --image-type venv
-    cd ..
-    run_integration_tests starter
-    cd llama-stack
-  fi
-}
 
 publish_packages() {
   local repo=$1
@@ -127,26 +132,43 @@ publish_packages() {
 main() {
   echo "Starting combined test, build and publish for nightly packages..."
 
+  # Generate version if not provided
+  generate_nightly_version
+  export VERSION
+  echo "Using version: $VERSION"
+
   # Repos to process
   REPOS=(stack-client-python stack-client-typescript stack)
-
   if is_truthy "$LLAMA_STACK_ONLY"; then
     REPOS=(stack)
   fi
 
   setup_environment
 
+  # Build packages
   for repo in "${REPOS[@]}"; do
     echo "Processing $repo..."
 
     clone_and_prepare_repo $repo
     build_packages $repo
-    test_packages $repo
-    publish_packages $repo
 
     echo "Completed processing $repo"
     cd ..
   done
+
+  # Run tests
+  test_llama_cli
+  test_library_client "$DISTRO" "$LLAMA_STACK_ONLY"
+  test_docker "$DISTRO" "$LLAMA_STACK_ONLY" "$TOGETHER_API_KEY" "$FIREWORKS_API_KEY" "$TAVILY_SEARCH_API_KEY"
+
+  # Publish packages after build and test pass
+  for repo in "${REPOS[@]}"; do
+    echo "Publishing $repo..."
+    cd llama-$repo
+    publish_packages $repo
+    cd ..
+  done
+
 
   echo "Nightly test, build and publish completed successfully!"
 }

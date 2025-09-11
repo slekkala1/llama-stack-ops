@@ -2,8 +2,8 @@ name: 'Nightly Test Build and Publish'
 description: 'Test, build and publish nightly packages to test registries for llama-stack, llama-stack-client-python, and llama-stack-client-typescript repos'
 inputs:
   version:
-    description: 'Version of the package to publish'
-    required: true
+    description: 'Version of the package to publish (if not provided, will generate nightly version)'
+    required: false
   github_token:
     description: 'GitHub token for repo access'
     required: true
@@ -14,6 +14,15 @@ inputs:
     description: 'Only test and publish llama-stack (default: false)'
     required: false
     default: 'false'
+  together_api_key:
+    description: 'Together API key for testing'
+    required: false
+  fireworks_api_key:
+    description: 'Fireworks API key for testing'
+    required: false
+  tavily_search_api_key:
+    description: 'Tavily Search API key for testing'
+    required: false
 
 runs:
   using: 'composite'
@@ -39,10 +48,13 @@ runs:
     - name: Test Build and Publish
       shell: bash
       env:
-        VERSION: ${{ inputs.version }}
+        VERSION: ${{ inputs.version || '' }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         LLAMA_STACK_ONLY: ${{ inputs.llama_stack_only }}
         NPM_TOKEN: ${{ inputs.npm_token }}
+        TOGETHER_API_KEY: ${{ inputs.together_api_key }}
+        FIREWORKS_API_KEY: ${{ inputs.fireworks_api_key }}
+        TAVILY_SEARCH_API_KEY: ${{ inputs.tavily_search_api_key }}
       run: |
         chmod +x ${{ github.action_path }}/main.sh
         ${{ github.action_path }}/main.sh

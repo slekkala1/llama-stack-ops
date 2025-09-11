@@ -4,6 +4,11 @@ on:
 #  schedule:
 #    - cron: "0 2 * * *"
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to auto-generate nightly version from release version)'
+        required: false
+        type: string
 
 jobs:
   nightly:
@@ -16,17 +21,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Generate version
-      id: version
-      run: |
-        DATE=$(date +%Y%m%d)
-        VERSION="0.1.0.dev${DATE}"
-        echo "Generated nightly version: $VERSION"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-
     - uses: ./actions/nightly-build-publish
       with:
-        version: ${{ steps.version.outputs.version }}
+        version: ${{ inputs.version }}
         llama_stack_only: false
         github_token: ${{ secrets.LLAMA_REPOS_PAT }}
         npm_token: ${{ secrets.NPM_TOKEN }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
