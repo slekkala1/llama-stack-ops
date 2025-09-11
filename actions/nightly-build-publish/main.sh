@@ -23,6 +23,12 @@ set -euo pipefail
 set -x
 
 generate_nightly_version() {
+  # Only generate version if not already set
+  if [ -n "$VERSION" ]; then
+    echo "Using provided VERSION: $VERSION"
+    return
+  fi
+  
   echo "Extracting base version from llama-stack repo..."
   
   # Clone llama-stack repo to extract version
@@ -37,10 +43,9 @@ generate_nightly_version() {
   
   # Generate nightly version with date suffix
   local date=$(date +%Y%m%d)
-  local nightly_version="${base_version}-dev.${date}"
+  VERSION="${base_version}-dev.${date}"
   
-  echo "Generated nightly version: $nightly_version (base: $base_version)"
-  echo "$nightly_version"
+  echo "Generated nightly version: $VERSION (base: $base_version)"
 }
 
 setup_environment() {
@@ -129,11 +134,8 @@ main() {
   echo "Starting combined test, build and publish for nightly packages..."
 
   # Generate version if not provided
-  if [ -z "$VERSION" ]; then
-    echo "Generating nightly version..."
-    VERSION=$(generate_nightly_version)
-    export VERSION
-  fi
+  generate_nightly_version
+  export VERSION
   echo "Using version: $VERSION"
 
   # Repos to process
