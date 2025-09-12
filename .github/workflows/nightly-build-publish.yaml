@@ -1,0 +1,106 @@
+name: Nightly Test and Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 0.2.21-dev.20250911)'
+        required: false
+        type: string
+      commit_id:
+        description: 'Commit ID for "cut" (default: origin/main)'
+        required: false
+        type: string
+      inference_provider:
+        description: 'Inference provider (fireworks, together)'
+        required: false
+        type: string
+        default: 'fireworks'
+      cut_mode:
+        description: 'Mode to run the script in (test-and-cut, cut-only)'
+        type: string
+        default: 'test-and-cut'
+      llama_stack_only:
+        description: 'Only cut a llama-stack nightly release'
+        required: false
+        type: boolean
+        default: false
+#  schedule:
+#    - cron: "0 4 * * *"  # Run every day at 4 AM UTC
+
+jobs:
+  generate-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Generate nightly version
+      id: version
+      run: |
+        if [ -n "${{ inputs.version }}" ]; then
+          echo "Using provided VERSION: ${{ inputs.version }}"
+          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "Extracting base version from llama-stack repo..."
+          
+          # Clone llama-stack repo to extract version
+          git clone --depth 1 "https://x-access-token:${{ secrets.LLAMA_REPOS_PAT || github.token }}@github.com/meta-llama/llama-stack.git" temp-version-check
+          cd temp-version-check
+          
+          # Extract version from pyproject.toml
+          base_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          cd ..
+          rm -rf temp-version-check
+          
+          # Generate nightly version with date suffix
+          date=$(date +%Y%m%d)
+          version="${base_version}-dev.${date}"
+          
+          echo "Generated nightly version: $version (base: $base_version)"
+          echo "version=$version" >> $GITHUB_OUTPUT
+        fi
+
+  test-and-cut:
+    needs: generate-version
+    runs-on: ubuntu-latest
+    environment:
+      name: testrelease
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./actions/test-and-cut
+      with:
+        version: ${{ needs.generate-version.outputs.version }}
+        commit_id: ${{ inputs.commit_id }}
+        inference_provider: ${{ inputs.inference_provider }}
+        cut_mode: ${{ inputs.cut_mode }}
+        llama_stack_only: ${{ inputs.llama_stack_only }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY || 'fake-fireworks-token-for-fork-testing' }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY || 'fake-together-token-for-fork-testing' }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY || 'fake-tavily-token-for-fork-testing' }}
+        # TODO: this will expire in 90 days; we should figure out a
+        # GitHub App setup that can be used instead
+        github_token: ${{ secrets.LLAMA_REPOS_PAT || github.token }}
+
+  upload-packages-and-tag:
+    needs:
+      - generate-version
+      - test-and-cut
+    environment:
+      name: testrelease
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./actions/upload-packages-and-tag
+      with:
+        version: ${{ needs.generate-version.outputs.version }}
+        llama_stack_only: ${{ inputs.llama_stack_only }}
+        # TODO: this will expire in 90 days; we should figure out a
+        # GitHub App setup that can be used instead
+        github_token: ${{ secrets.LLAMA_REPOS_PAT || github.token }}
+        npm_token: ${{ secrets.NPM_TOKEN || 'fake-npm-token-for-fork-testing' }}
