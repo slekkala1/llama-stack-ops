@@ -102,5 +102,5 @@ jobs:
         llama_stack_only: ${{ inputs.llama_stack_only }}
         # TODO: this will expire in 90 days; we should figure out a
         # GitHub App setup that can be used instead
-        github_token: ${{ secrets.LLAMA_REPOS_PAT || github.token }}
-        npm_token: ${{ secrets.NPM_TOKEN || 'fake-npm-token-for-fork-testing' }}
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}
+        npm_token: ${{ secrets.NPM_TOKEN }}
