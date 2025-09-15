@@ -45,13 +45,11 @@ jobs:
           echo "Extracting base version from llama-stack repo..."
 
           # Clone llama-stack repo to extract version
-          git clone --depth 1 "https://x-access-token:${{ secrets.LLAMA_REPOS_PAT }}@github.com/meta-llama/llama-stack.git" temp-version-check
+          git clone --depth 1 "https://x-access-token:${{ secrets.LLAMA_REPOS_PAT || github.token }}@github.com/meta-llama/llama-stack.git" temp-version-check
           cd temp-version-check
 
-          # Extract version from pyproject.toml
-          base_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          cd ..
-          rm -rf temp-version-check
+          # Extract version from pyproject.toml using tomli
+          base_version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
 
           # Generate nightly version with date suffix
           date=$(date +%Y%m%d)
