@@ -43,20 +43,20 @@ jobs:
           echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
         else
           echo "Extracting base version from llama-stack repo..."
-          
+
           # Clone llama-stack repo to extract version
           git clone --depth 1 "https://x-access-token:${{ secrets.LLAMA_REPOS_PAT || github.token }}@github.com/meta-llama/llama-stack.git" temp-version-check
           cd temp-version-check
-          
+
           # Extract version from pyproject.toml
           base_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
           cd ..
           rm -rf temp-version-check
-          
+
           # Generate nightly version with date suffix
           date=$(date +%Y%m%d)
           version="${base_version}-dev.${date}"
-          
+
           echo "Generated nightly version: $version (base: $base_version)"
           echo "version=$version" >> $GITHUB_OUTPUT
         fi
@@ -77,12 +77,12 @@ jobs:
         inference_provider: ${{ inputs.inference_provider }}
         cut_mode: ${{ inputs.cut_mode }}
         llama_stack_only: ${{ inputs.llama_stack_only }}
-        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY || 'fake-fireworks-token-for-fork-testing' }}
-        together_api_key: ${{ secrets.TOGETHER_API_KEY || 'fake-together-token-for-fork-testing' }}
-        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY || 'fake-tavily-token-for-fork-testing' }}
+        fireworks_api_key: ${{ secrets.FIREWORKS_API_KEY }}
+        together_api_key: ${{ secrets.TOGETHER_API_KEY }}
+        tavily_search_api_key: ${{ secrets.TAVILY_SEARCH_API_KEY }}
         # TODO: this will expire in 90 days; we should figure out a
         # GitHub App setup that can be used instead
-        github_token: ${{ secrets.LLAMA_REPOS_PAT || github.token }}
+        github_token: ${{ secrets.LLAMA_REPOS_PAT }}
 
   upload-packages-and-tag:
     needs:
