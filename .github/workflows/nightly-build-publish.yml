@@ -49,13 +49,17 @@ jobs:
           cd temp-version-check
 
           # Extract version from pyproject.toml and increment patch version
-          base_version=$(python -c "import tomllib; version = tomllib.load(open('pyproject.toml', 'rb'))['project']['version']; major, minor, patch = version.split('.'); print(f'{major}.{minor}.{int(patch) + 1}')")
+          base_version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          echo "Extracted version from pyproject.toml: $base_version"
+          
+          # Increment patch version
+          incremented_version=$(python -c "version = '$base_version'; major, minor, patch = version.split('.'); print(f'{major}.{minor}.{int(patch) + 1}')")
 
           # Generate nightly version with date suffix
           date=$(date +%Y%m%d)
-          version="${base_version}-dev.${date}"
+          version="${incremented_version}-dev.${date}"
 
-          echo "Generated nightly version: $version (base: $base_version)"
+          echo "Generated nightly version: $version (incremented from base: $base_version to: $incremented_version)"
           echo "version=$version" >> $GITHUB_OUTPUT
         fi
 
