@@ -161,6 +161,10 @@ test_docker() {
 
   run_integration_tests http://localhost:$LLAMA_STACK_PORT
 
+  # Show docker logs before stopping
+  echo "Docker logs from llama-stack-$DISTRO:"
+  docker logs llama-stack-$DISTRO
+
   # stop the container
   docker stop llama-stack-$DISTRO
 }
