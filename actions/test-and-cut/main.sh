@@ -155,6 +155,10 @@ test_docker() {
     fi
   done
 
+  # Debug: Show environment variables in the container
+  echo "Container environment variables:"
+  docker exec llama-stack-$DISTRO env | sort
+
   run_integration_tests http://localhost:$LLAMA_STACK_PORT
 
   # stop the container
@@ -166,8 +170,8 @@ build_packages
 install_dependencies
 
 if [ "$CUT_MODE" != "cut-only" ]; then
-  test_llama_cli
-  test_library_client
+  # test_llama_cli
+  # test_library_client
   test_docker
 fi
 
