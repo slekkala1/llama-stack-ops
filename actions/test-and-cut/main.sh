@@ -159,7 +159,11 @@ test_docker() {
   echo "Container environment variables:"
   docker exec llama-stack-$DISTRO env | sort
 
+  # Run tests but capture exit code to show logs even if tests fail
+  set +e
   run_integration_tests http://localhost:$LLAMA_STACK_PORT
+  test_exit_code=$?
+  set -e
 
   # Show docker logs before stopping
   echo "Docker logs from llama-stack-$DISTRO:"
@@ -167,6 +171,12 @@ test_docker() {
 
   # stop the container
   docker stop llama-stack-$DISTRO
+  
+  # Exit with test exit code if tests failed
+  if [ $test_exit_code -ne 0 ]; then
+    echo "Integration tests failed with exit code $test_exit_code"
+    exit $test_exit_code
+  fi
 }
 
 build_packages
